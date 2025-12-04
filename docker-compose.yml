@@ -1,0 +1,39 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8200:3000"
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      PORT: 3000
+    depends_on:
+      - db
+    networks:
+      - agrosavia-network
+    restart: always
+
+  db:
+    image: postgres:15-alpine
+    container_name: admin-eventos
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - agrosavia-network
+    restart: always
+
+volumes:
+  postgres-data:
+
+networks:
+  agrosavia-network:
+    external: true

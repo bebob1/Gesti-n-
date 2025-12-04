@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Videos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background: white;
+            color: #667eea;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-logout:hover {
+            background: #ff4757;
+            border-color: #ff4757;
+        }
+        
+        /* Contenedor principal */
+        .container {
+            max-width: 1600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        /* Filtros */
+        .filters-container { background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 25px; }
+        .search-bar { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .search-input-wrapper { flex: 1; min-width: 250px; }
+        .search-input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .search-input:focus { outline: none; border-color: #4CAF50; }
+        
+        .filters-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .filter-group { flex: 1; min-width: 200px; }
+        .filter-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #666; font-weight: 600; }
+        .filter-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background: white; }
+        .filter-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        
+        .btn-clear { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; white-space: nowrap; }
+        .btn-clear:hover { background: #5a6268; }
+        
+        .results-info { text-align: center; color: #666; font-size: 14px; margin-bottom: 15px; }
+        
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #4CAF50; color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; vertical-align: middle; }
+        tr:hover { background: #f9f9f9; }
+        .btn-edit { background: #2196F3; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .btn-edit:hover { background: #1976D2; }
+        
+        .no-results { text-align: center; padding: 40px; color: #999; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal[aria-hidden="false"] { display: block; }
+        .modal-content { background: white; margin: 5% auto; padding: 30px; border-radius: 8px; width: 90%; max-width: 600px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .close { color: #aaa; float: right; font-size: 28px; cursor: pointer; background: none; border: none; }
+        .close:hover { color: #000; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        select, input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .btn-save { background: #4CAF50; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 15px; width: 100%; font-weight: 600; }
+        .btn-save:hover { background: #45a049; }
+        .alert { padding: 12px; margin-bottom: 20px; border-radius: 4px; display: none; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        .video-titulo { max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 10px; text-align: center; }
+            .header-left { flex-direction: column; gap: 10px; }
+            .video-titulo { max-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-left">
+        <a href="/" class="btn-back">← Volver al Menú</a>
+        <div class="header-title">🎥 Administrador de Videos</div>
+    </div>
+    <a href="/logout" class="btn-logout">🚪 Cerrar Sesión</a>
+</div>
+
+<div class="container" role="main">
+    <div id="alert" class="alert" role="status" aria-live="polite"></div>
+
+    <!-- Filtros de Búsqueda -->
+    <div class="filters-container" aria-label="Filtros de búsqueda">
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por título del video..." aria-label="Buscar por título">
+            </div>
+            <button class="btn-clear" type="button" onclick="clearFilters()">🔄 Limpiar Filtros</button>
+        </div>
+        
+        <div class="filters-row">
+            <div class="filter-group">
+                <label for="filterID">ID del Video</label>
+                <input type="text" id="filterID" class="filter-input" placeholder="Buscar por ID...">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterFuente">Fuente de Origen</label>
+                <select id="filterFuente" class="filter-select">
+                    <option value="">Todas las fuentes</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterCategoria">Categoría</label>
+                <select id="filterCategoria" class="filter-select">
+                    <option value="">Todas las categorías</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="filterDepartamento">Departamento</label>
+                <select id="filterDepartamento" class="filter-select">
+                    <option value="">Todos los departamentos</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="results-info" aria-live="polite">
+        Mostrando <strong id="resultCount"><%= videos.length %></strong> de <strong id="totalCount"><%= videos.length %></strong> videos
+    </div>
+
+    <div class="table-wrapper" role="region" aria-label="Lista de videos">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Fuente Origen</th>
+                    <th>Categoría</th>
+                    <th>Departamento</th>
+                    <th>Fecha Publicación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="videosTable">
+                <% videos.forEach(video => { %>
+                <% 
+                    // Normalizar valores a string para evitar atributos rotos
+                    const vidId = String(video.invid_id || '');
+                    const titulo = String(video.invid_titulo || '');
+                    const fuente = String(video.invid_fuente_origen || '');
+                    const categoria = String(video.invid_categoria || '');
+                    const depto = String(video.invid_depto_desc || '');
+                    const fecha = String(video.invid_published_at || '');
+                    const url = String(video.invid_url || '#');
+                %>
+                <tr
+                    data-id="<%= vidId %>"
+                    data-titulo="<%= titulo %>"
+                    data-fuente="<%= fuente %>"
+                    data-categoria="<%= categoria %>"
+                    data-depto="<%= depto %>"
+                    data-fecha="<%= fecha %>">
+                    <td><%= vidId %></td>
+                    <td class="video-titulo" title="<%= titulo %>"><%= titulo %></td>
+                    <td><%= fuente || '-' %></td>
+                    <td><%= categoria || '-' %></td>
+                    <td><%= depto || '-' %></td>
+                    <td><%= fecha ? new Date(fecha).toLocaleDateString() : '-' %></td>
+                    <td>
+                        <a href="<%= url %>" target="_blank" rel="noopener noreferrer" class="btn-view" title="Ver video">👁️ Ver</a>
+
+                        <!-- CORRECCIÓN: uso seguro de JSON.stringify para pasar parámetros -->
+                        <button class="btn-edit" type="button"
+                            onclick='openModal(
+                                <%- JSON.stringify(vidId) %>,
+                                <%- JSON.stringify(fuente) %>,
+                                <%- JSON.stringify(categoria) %>,
+                                <%- JSON.stringify(depto) %>
+                            )'
+                            aria-label="Editar video">
+                            ✏️ Editar
+                        </button>
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+
+        <div id="noResults" class="no-results" style="display: none;">
+            No se encontraron videos que coincidan con tu búsqueda
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Edición -->
+<div id="editModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+        <button class="close" aria-label="Cerrar modal" onclick="closeModal()">&times;</button>
+        <h2 id="modalTitle" style="margin-bottom:20px;">Editar Categorización</h2>
+
+        <form id="editForm">
+            <input type="hidden" id="videoId">
+
+            <div class="form-group">
+                <label for="fuenteOrigen">Fuente de Origen:</label>
+                <input type="text" id="fuenteOrigen" class="filter-input" placeholder="Ej: YouTube, Vimeo, etc.">
+            </div>
+
+            <div class="form-group">
+                <label for="categoria">Categoría (Sistema productivo o cadena):</label>
+                <input type="text" id="categoria" class="filter-input" placeholder="Ej: Agricultura, Ganadería, etc.">
+            </div>
+
+            <div class="form-group">
+                <label for="departamento">Departamento:</label>
+                <select id="departamento" class="filter-select">
+                    <option value="">Sin departamento</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-save">💾 Guardar Cambios</button>
+        </form>
+    </div>
+</div>
+
+<script>
+let allRows = [];
+
+/* Mostrar alertas */
+function showAlert(msg, type = 'success') {
+    const alert = document.getElementById('alert');
+    alert.textContent = msg;
+    alert.className = `alert alert-${type}`;
+    alert.style.display = 'block';
+    clearTimeout(showAlert._t);
+    showAlert._t = setTimeout(() => alert.style.display = 'none', 2500);
+}
+
+/* Inicialización */
+document.addEventListener('DOMContentLoaded', function() {
+    allRows = Array.from(document.querySelectorAll('#videosTable tr'));
+    populateFilters();
+
+    // Event listeners para filtros
+    const si = document.getElementById('searchInput');
+    if (si) si.addEventListener('input', applyFilters);
+
+    const fID = document.getElementById('filterID');
+    if (fID) fID.addEventListener('input', applyFilters);
+
+    const ids = ['filterFuente','filterCategoria','filterDepartamento'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', applyFilters);
+    });
+
+    // Inicializar contador/estado
+    applyFilters();
+});
+
+/* Poblar selects con los valores de las filas */
+function populateFilters() {
+    const fuentes = new Set();
+    const categorias = new Set();
+    const departamentos = new Set();
+
+    allRows.forEach(row => {
+        const f = (row.dataset.fuente || '').trim();
+        const c = (row.dataset.categoria || '').trim();
+        const d = (row.dataset.depto || '').trim();
+        if (f) fuentes.add(f);
+        if (c) categorias.add(c);
+        if (d) departamentos.add(d);
+    });
+
+    const fuenteSelect = document.getElementById('filterFuente');
+    const categoriaSelect = document.getElementById('filterCategoria');
+    const deptoSelect = document.getElementById('filterDepartamento');
+
+    if (fuenteSelect) {
+        fuenteSelect.innerHTML = '<option value=\"\">Todas las fuentes</option>';
+        Array.from(fuentes).sort().forEach(f => {
+            const o = document.createElement('option');
+            o.value = f; o.textContent = f;
+            fuenteSelect.appendChild(o);
+        });
+    }
+
+    if (categoriaSelect) {
+        categoriaSelect.innerHTML = '<option value=\"\">Todas las categorías</option>';
+        Array.from(categorias).sort().forEach(c => {
+            const o = document.createElement('option');
+            o.value = c; o.textContent = c;
+            categoriaSelect.appendChild(o);
+        });
+    }
+
+    if (deptoSelect) {
+        deptoSelect.innerHTML = '<option value=\"\">Todos los departamentos</option>';
+        Array.from(departamentos).sort().forEach(d => {
+            const o = document.createElement('option');
+            o.value = d; o.textContent = d;
+            deptoSelect.appendChild(o);
+        });
+    }
+}
+
+/* Filtrado */
+function applyFilters() {
+    const searchText = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const filterID = (document.getElementById('filterID')?.value || '').toLowerCase();
+    const filterFuente = (document.getElementById('filterFuente')?.value || '');
+    const filterCategoria = (document.getElementById('filterCategoria')?.value || '');
+    const filterDepto = (document.getElementById('filterDepartamento')?.value || '');
+
+    let visibleCount = 0;
+
+    allRows.forEach(row => {
+        const id = (row.dataset.id || '').toLowerCase();
+        const titulo = (row.dataset.titulo || '').toLowerCase();
+        const fuente = (row.dataset.fuente || '');
+        const categoria = (row.dataset.categoria || '');
+        const depto = (row.dataset.depto || '');
+
+        const matchSearch = !searchText || titulo.includes(searchText);
+        const matchID = !filterID || id.includes(filterID);
+        const matchFuente = !filterFuente || fuente === filterFuente;
+        const matchCategoria = !filterCategoria || categoria === filterCategoria;
+        const matchDepto = !filterDepto || depto === filterDepto;
+
+        const matched = matchSearch && matchID && matchFuente && matchCategoria && matchDepto;
+
+        row.style.display = matched ? '' : 'none';
+        if (matched) visibleCount++;
+    });
+
+    document.getElementById('resultCount').textContent = visibleCount;
+    document.getElementById('totalCount').textContent = allRows.length;
+
+    const noResults = document.getElementById('noResults');
+    const table = document.querySelector('.table-wrapper table') || document.querySelector('table');
+    if (visibleCount === 0) {
+        if (noResults) noResults.style.display = 'block';
+        if (table) table.style.display = 'none';
+    } else {
+        if (noResults) noResults.style.display = 'none';
+        if (table) table.style.display = 'table';
+    }
+}
+
+/* Limpiar filtros */
+function clearFilters() {
+    const elems = ['searchInput','filterID','filterFuente','filterCategoria','filterDepartamento'];
+    elems.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    applyFilters();
+}
+
+/* Cargar departamentos (API) */
+async function loadDepartamentos() {
+    const select = document.getElementById('departamento');
+    if (!select) return;
+    select.innerHTML = '<option value=\"\">Cargando departamentos...</option>';
+    try {
+        const res = await fetch('/videos/api/departamentos');
+        if (!res.ok) throw new Error('No OK');
+        const deps = await res.json();
+        select.innerHTML = '<option value=\"\">Sin departamento</option>';
+        deps.forEach(dep => {
+            const opt = document.createElement('option');
+            opt.value = dep.dep_desc;
+            opt.textContent = dep.dep_desc;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        console.error('Error al cargar departamentos', err);
+        select.innerHTML = '<option value=\"\">Error al cargar departamentos</option>';
+        showAlert('Error al cargar departamentos', 'error');
+    }
+}
+
+/* Modal: abrir / cerrar */
+async function openModal(videoId, fuente = '', categoria = '', depto = '') {
+    const modal = document.getElementById('editModal');
+    if (!modal) return;
+    modal.setAttribute('aria-hidden', 'false');
+    modal.style.display = 'block';
+
+    // Cargar departamentos y luego asignar valores
+    await loadDepartamentos();
+
+    document.getElementById('videoId').value = videoId ?? '';
+    document.getElementById('fuenteOrigen').value = fuente ?? '';
+    document.getElementById('categoria').value = categoria ?? '';
+
+    const departamentoSelect = document.getElementById('departamento');
+    if (depto && departamentoSelect) {
+        const found = Array.from(departamentoSelect.options).find(o => o.value === depto);
+        departamentoSelect.value = found ? depto : '';
+    } else if (departamentoSelect) {
+        departamentoSelect.value = '';
+    }
+
+    // Focus accesible
+    document.getElementById('fuenteOrigen').focus();
+}
+
+function closeModal() {
+    const modal = document.getElementById('editModal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+window.onclick = function (e) {
+    const modal = document.getElementById('editModal');
+    if (!modal) return;
+    if (e.target === modal) closeModal();
+};
+
+/* Guardar cambios */
+document.getElementById('editForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const videoId = document.getElementById('videoId').value;
+    const fuenteOrigen = (document.getElementById('fuenteOrigen').value || '').trim();
+    const categoria = (document.getElementById('categoria').value || '').trim();
+    const departamento = (document.getElementById('departamento').value || '') || null;
+
+    if (!videoId) {
+        showAlert('ID de video inválido', 'error');
+        return;
+    }
+
+    const body = {
+        invid_fuente_origen: fuenteOrigen || null,
+        invid_categoria: categoria || null,
+        invid_depto_desc: departamento || null
+    };
+
+    try {
+        const res = await fetch(`/videos/api/${encodeURIComponent(videoId)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (data && data.success) {
+            showAlert('Cambios guardados exitosamente', 'success');
+            closeModal();
+            setTimeout(() => location.reload(), 700);
+        } else {
+            showAlert(data?.message || 'Error al guardar cambios', 'error');
+        }
+    } catch (err) {
+        console.error('Error al guardar:', err);
+        showAlert('Error al guardar cambios', 'error');
+    }
+});
+</script>
+
+</body>
+</html>

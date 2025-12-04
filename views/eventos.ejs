@@ -6,8 +6,74 @@
     <title>Admin - Eventos</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 30px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background: white;
+            color: #667eea;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-logout:hover {
+            background: #ff4757;
+            border-color: #ff4757;
+        }
+        
+        /* Contenedor principal */
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
         h1 { color: #333; margin-bottom: 30px; text-align: center; }
         
         /* Filtros */
@@ -51,12 +117,25 @@
         .alert { padding: 12px; margin-bottom: 20px; border-radius: 4px; display: none; }
         .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 10px; text-align: center; }
+            .header-left { flex-direction: column; gap: 10px; }
+        }
     </style>
 </head>
 <body>
 
+<!-- Header -->
+<div class="header">
+    <div class="header-left">
+        <a href="/" class="btn-back">← Volver al Menú</a>
+        <div class="header-title">📅 Administrador de Eventos</div>
+    </div>
+    <a href="/logout" class="btn-logout">🚪 Cerrar Sesión</a>
+</div>
+
 <div class="container">
-    <h1>📅 Administrador de Eventos</h1>
     <div id="alert" class="alert"></div>
 
     <!-- Filtros de Búsqueda -->
@@ -266,12 +345,15 @@ function clearFilters() {
 
 async function loadDepartamentos() {
     const select = document.getElementById("departamento");
-    select.innerHTML = `<option value="">Seleccione un departamento...</option>`;
+    select.innerHTML = `<option value="">Cargando departamentos...</option>`;
 
     try {
-        const res = await fetch("/api/departamentos");
+        const res = await fetch("/eventos/api/departamentos");
+        if (!res.ok) throw new Error('Error al cargar departamentos');
+        
         departamentos = await res.json();
-
+        
+        select.innerHTML = `<option value="">Seleccione un departamento...</option>`;
         departamentos.forEach(dep => {
             const option = document.createElement("option");
             option.value = dep.dep_id.toString();
@@ -279,12 +361,14 @@ async function loadDepartamentos() {
             select.appendChild(option);
         });
     } catch (err) {
-        console.error(err);
+        console.error('Error cargando departamentos:', err);
+        select.innerHTML = `<option value="">Error al cargar departamentos</option>`;
+        showAlert("Error al cargar departamentos", "error");
     }
 }
 
 document.getElementById("departamento").addEventListener("change", async function () {
-    const depId = this.value.toString();
+    const depId = this.value;
     const municipioSelect = document.getElementById("municipio");
 
     municipioSelect.innerHTML = `<option value="">Cargando...</option>`;
@@ -295,7 +379,9 @@ document.getElementById("departamento").addEventListener("change", async functio
     }
 
     try {
-        const res = await fetch(`/api/ciudades/${depId}`);
+        const res = await fetch(`/eventos/api/ciudades/${depId}`);
+        if (!res.ok) throw new Error('Error al cargar ciudades');
+        
         const ciudades = await res.json();
 
         municipioSelect.innerHTML = `<option value="">Seleccione un municipio...</option>`;
@@ -306,24 +392,31 @@ document.getElementById("departamento").addEventListener("change", async functio
             municipioSelect.appendChild(option);
         });
     } catch (err) {
-        municipioSelect.innerHTML = `<option>Error al cargar municipios</option>`;
-        console.error(err);
+        console.error('Error cargando municipios:', err);
+        municipioSelect.innerHTML = `<option value="">Error al cargar municipios</option>`;
+        showAlert("Error al cargar municipios", "error");
     }
 });
 
 async function openModal(eventId, depId, munId) {
+    // Mostrar el modal primero
+    document.getElementById("editModal").style.display = "block";
+    
+    // Cargar departamentos
     await loadDepartamentos();
 
+    // Establecer valores
     document.getElementById("eventId").value = eventId;
     document.getElementById("departamento").value = depId.toString();
 
-    document.getElementById("departamento").dispatchEvent(new Event("change"));
+    // Trigger change event para cargar municipios
+    const changeEvent = new Event("change");
+    document.getElementById("departamento").dispatchEvent(changeEvent);
 
+    // Esperar un poco más para que los municipios se carguen
     setTimeout(() => {
         document.getElementById("municipio").value = munId.toString();
-    }, 400);
-
-    document.getElementById("editModal").style.display = "block";
+    }, 600);
 }
 
 function closeModal() {
@@ -341,8 +434,13 @@ document.getElementById("editForm").addEventListener("submit", async function (e
     const deptoId = document.getElementById("departamento").value;
     const munId = document.getElementById("municipio").value;
 
+    if (!deptoId || !munId) {
+        showAlert("Por favor seleccione departamento y municipio", "error");
+        return;
+    }
+
     try {
-        const res = await fetch(`/api/eventos/${eventId}`, {
+        const res = await fetch(`/eventos/api/${eventId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -358,9 +456,10 @@ document.getElementById("editForm").addEventListener("submit", async function (e
             closeModal();
             setTimeout(() => location.reload(), 800);
         } else {
-            showAlert("Error al guardar cambios", "error");
+            showAlert(data.message || "Error al guardar cambios", "error");
         }
     } catch (err) {
+        console.error('Error al guardar:', err);
         showAlert("Error al guardar cambios", "error");
     }
 });

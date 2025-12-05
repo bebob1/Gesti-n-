@@ -35,55 +35,155 @@ router.get('/api/departamentos', async (req, res) => {
 });
 
 /**
- * GET /videos/api/categorias
- * Devuelve todas las categorías únicas
+ * GET /videos/api/cadenas
+ * Devuelve todas las cadenas en formato JSON
  */
-router.get('/api/categorias', async (req, res) => {
+router.get('/api/cadenas', async (req, res) => {
     try {
-        const categorias = await VideosModel.getAllCategorias();
-        res.json(categorias);
+        const cadenas = await VideosModel.getAllCadenas();
+        res.json(cadenas);
     } catch (err) {
-        console.error('ERROR al cargar categorías:', err);
-        res.status(500).json({ error: true, message: 'Error al cargar categorías' });
+        console.error('ERROR al cargar cadenas:', err);
+        res.status(500).json({ error: true, message: 'Error al cargar cadenas' });
     }
 });
 
 /**
- * GET /videos/api/fuentes
- * Devuelve todas las fuentes de origen únicas
+ * POST /videos/api/create
+ * Crea un nuevo video
  */
-router.get('/api/fuentes', async (req, res) => {
+router.post('/api/create', async (req, res) => {
+    const { 
+        invid_video_id, 
+        invid_titulo, 
+        invid_published_at, 
+        invid_url, 
+        invid_fuente_origen, 
+        invid_categoria 
+    } = req.body;
+
     try {
-        const fuentes = await VideosModel.getAllFuentes();
-        res.json(fuentes);
+        // Validar campos obligatorios
+        if (!invid_video_id || !invid_titulo || !invid_published_at || !invid_url) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Faltan campos obligatorios: video_id, titulo, fecha y url son requeridos' 
+            });
+        }
+
+        // Obtener descripciones si se proporcionan IDs
+        let fuenteOrigenDesc = invid_fuente_origen;
+        let categoriaDesc = invid_categoria;
+
+        // Si fuente origen es un ID de departamento, obtener descripción
+        if (invid_fuente_origen && !isNaN(invid_fuente_origen)) {
+            const departamento = await VideosModel.getDepartamentoById(invid_fuente_origen);
+            if (departamento) {
+                fuenteOrigenDesc = departamento.dep_desc;
+            }
+        }
+
+        // Si categoría es un ID de cadena, obtener descripción
+        if (invid_categoria && !isNaN(invid_categoria)) {
+            const cadena = await VideosModel.getCadenaById(invid_categoria);
+            if (cadena) {
+                categoriaDesc = cadena.espcad_cad_desc;
+            }
+        }
+
+        // Crear el video
+        const videoData = {
+            videoId: invid_video_id,
+            titulo: invid_titulo,
+            publishedAt: invid_published_at,
+            url: invid_url,
+            fuenteOrigen: fuenteOrigenDesc || null,
+            categoria: categoriaDesc || null
+        };
+
+        const newVideo = await VideosModel.createVideo(videoData);
+
+        if (newVideo) {
+            res.json({ 
+                success: true, 
+                message: 'Video creado correctamente',
+                video: newVideo 
+            });
+        } else {
+            res.status(500).json({ 
+                success: false, 
+                message: 'Error al crear el video' 
+            });
+        }
+
     } catch (err) {
-        console.error('ERROR al cargar fuentes:', err);
-        res.status(500).json({ error: true, message: 'Error al cargar fuentes' });
+        console.error('ERROR al crear video:', err);
+        
+        // Verificar si es error de duplicado
+        if (err.code === '23505') { // Código de PostgreSQL para unique violation
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Ya existe un video con ese Video ID' 
+            });
+        }
+        
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error al crear video: ' + err.message 
+        });
     }
 });
 
 /**
  * POST /videos/api/:id
- * Actualiza la categorización de un video
+ * Actualiza la fuente origen y categoría de un video
  */
 router.post('/api/:id', async (req, res) => {
     const { id } = req.params;
-    const { invid_fuente_origen, invid_categoria, invid_depto_desc } = req.body;
-    
+    const { invid_fuente_origen, invid_categoria } = req.body;
+
     try {
+        // Validar que se reciban los datos
+        if (!invid_fuente_origen && !invid_categoria) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Debe proporcionar fuente origen o categoría' 
+            });
+        }
+
+        // Obtener descripciones si se proporcionan IDs
+        let fuenteOrigenDesc = invid_fuente_origen;
+        let categoriaDesc = invid_categoria;
+
+        // Si fuente origen es un ID de departamento, obtener descripción
+        if (invid_fuente_origen && !isNaN(invid_fuente_origen)) {
+            const departamento = await VideosModel.getDepartamentoById(invid_fuente_origen);
+            if (departamento) {
+                fuenteOrigenDesc = departamento.dep_desc;
+            }
+        }
+
+        // Si categoría es un ID de cadena, obtener descripción
+        if (invid_categoria && !isNaN(invid_categoria)) {
+            const cadena = await VideosModel.getCadenaById(invid_categoria);
+            if (cadena) {
+                categoriaDesc = cadena.espcad_cad_desc;
+            }
+        }
+
         // Actualizar el video
-        const updated = await VideosModel.updateVideoCategorizacion(
+        const updated = await VideosModel.updateVideoCategoria(
             id,
-            invid_fuente_origen || null,
-            invid_categoria || null,
-            invid_depto_desc || null
+            fuenteOrigenDesc,
+            categoriaDesc
         );
-        
+
         if (updated) {
             res.json({ success: true, message: 'Video actualizado correctamente' });
         } else {
             res.status(404).json({ success: false, message: 'Video no encontrado' });
         }
+
     } catch (err) {
         console.error('ERROR al actualizar video:', err);
         res.status(500).json({ success: false, message: 'Error al actualizar video' });

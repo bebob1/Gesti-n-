@@ -10,7 +10,7 @@
         
         /* Header */
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
             color: white;
             padding: 15px 30px;
             display: flex;
@@ -39,7 +39,7 @@
         
         .btn-back:hover {
             background: white;
-            color: #667eea;
+            color: #FF9800;
         }
         
         .header-title {
@@ -66,7 +66,7 @@
         
         /* Contenedor principal */
         .container {
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 20px auto;
             background: white;
             border-radius: 8px;
@@ -74,18 +74,46 @@
             padding: 30px;
         }
         
+        h1 { color: #333; margin-bottom: 30px; text-align: center; }
+        
+        /* Botón agregar video */
+        .top-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        
+        .btn-add {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-add:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
         /* Filtros */
         .filters-container { background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 25px; }
         .search-bar { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
         .search-input-wrapper { flex: 1; min-width: 250px; }
         .search-input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-        .search-input:focus { outline: none; border-color: #4CAF50; }
+        .search-input:focus { outline: none; border-color: #FF9800; }
         
         .filters-row { display: flex; gap: 15px; flex-wrap: wrap; }
         .filter-group { flex: 1; min-width: 200px; }
         .filter-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #666; font-weight: 600; }
         .filter-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background: white; }
         .filter-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .filter-input:focus { outline: none; border-color: #FF9800; }
         
         .btn-clear { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; white-space: nowrap; }
         .btn-clear:hover { background: #5a6268; }
@@ -94,34 +122,40 @@
         
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background: #4CAF50; color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }
-        td { padding: 10px; border-bottom: 1px solid #ddd; vertical-align: middle; }
+        th { background: #FF9800; color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
         tr:hover { background: #f9f9f9; }
         .btn-edit { background: #2196F3; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .btn-edit:hover { background: #1976D2; }
         
+        .video-link { color: #2196F3; text-decoration: none; }
+        .video-link:hover { text-decoration: underline; }
+        
         .no-results { text-align: center; padding: 40px; color: #999; }
         
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal[aria-hidden="false"] { display: block; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow-y: auto; }
         .modal-content { background: white; margin: 5% auto; padding: 30px; border-radius: 8px; width: 90%; max-width: 600px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        .close { color: #aaa; float: right; font-size: 28px; cursor: pointer; background: none; border: none; }
+        .close { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
         .close:hover { color: #000; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
-        select, input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-        .btn-save { background: #4CAF50; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 15px; width: 100%; font-weight: 600; }
-        .btn-save:hover { background: #45a049; }
+        select, input[type="text"], input[type="datetime-local"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .btn-save { background: #FF9800; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 15px; width: 100%; font-weight: 600; }
+        .btn-save:hover { background: #F57C00; }
         .alert { padding: 12px; margin-bottom: 20px; border-radius: 4px; display: none; }
         .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         
-        .video-titulo { max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .field-type-toggle { display: flex; gap: 10px; margin-bottom: 10px; }
+        .type-btn { padding: 8px 16px; border: 2px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .type-btn.active { background: #FF9800; color: white; border-color: #FF9800; }
+        
+        .required { color: #ff4757; }
+        small { display: block; margin-top: 5px; font-size: 12px; }
         
         @media (max-width: 768px) {
             .header { flex-direction: column; gap: 10px; text-align: center; }
             .header-left { flex-direction: column; gap: 10px; }
-            .video-titulo { max-width: 200px; }
         }
     </style>
 </head>
@@ -131,21 +165,26 @@
 <div class="header">
     <div class="header-left">
         <a href="/" class="btn-back">← Volver al Menú</a>
-        <div class="header-title">🎥 Administrador de Videos</div>
+        <div class="header-title">🎬 Administrador de Videos</div>
     </div>
     <a href="/logout" class="btn-logout">🚪 Cerrar Sesión</a>
 </div>
 
-<div class="container" role="main">
-    <div id="alert" class="alert" role="status" aria-live="polite"></div>
+<div class="container">
+    <div id="alert" class="alert"></div>
+
+    <!-- Botón para agregar video -->
+    <div class="top-actions">
+        <button class="btn-add" onclick="openCreateModal()">➕ Agregar Nuevo Video</button>
+    </div>
 
     <!-- Filtros de Búsqueda -->
-    <div class="filters-container" aria-label="Filtros de búsqueda">
+    <div class="filters-container">
         <div class="search-bar">
             <div class="search-input-wrapper">
-                <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por título del video..." aria-label="Buscar por título">
+                <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por título del video...">
             </div>
-            <button class="btn-clear" type="button" onclick="clearFilters()">🔄 Limpiar Filtros</button>
+            <button class="btn-clear" onclick="clearFilters()">🔄 Limpiar Filtros</button>
         </div>
         
         <div class="filters-row">
@@ -155,7 +194,17 @@
             </div>
             
             <div class="filter-group">
-                <label for="filterFuente">Fuente de Origen</label>
+                <label for="filterFechaDesde">Fecha Desde</label>
+                <input type="date" id="filterFechaDesde" class="filter-input">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterFechaHasta">Fecha Hasta</label>
+                <input type="date" id="filterFechaHasta" class="filter-input">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterFuente">Fuente Origen</label>
                 <select id="filterFuente" class="filter-select">
                     <option value="">Todas las fuentes</option>
                 </select>
@@ -167,70 +216,47 @@
                     <option value="">Todas las categorías</option>
                 </select>
             </div>
-
-            <div class="filter-group">
-                <label for="filterDepartamento">Departamento</label>
-                <select id="filterDepartamento" class="filter-select">
-                    <option value="">Todos los departamentos</option>
-                </select>
-            </div>
         </div>
     </div>
 
-    <div class="results-info" aria-live="polite">
+    <div class="results-info">
         Mostrando <strong id="resultCount"><%= videos.length %></strong> de <strong id="totalCount"><%= videos.length %></strong> videos
     </div>
 
-    <div class="table-wrapper" role="region" aria-label="Lista de videos">
+    <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Título</th>
+                    <th>Fecha Publicación</th>
                     <th>Fuente Origen</th>
                     <th>Categoría</th>
-                    <th>Departamento</th>
-                    <th>Fecha Publicación</th>
+                    <th>URL</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="videosTable">
                 <% videos.forEach(video => { %>
-                <% 
-                    // Normalizar valores a string para evitar atributos rotos
-                    const vidId = String(video.invid_id || '');
-                    const titulo = String(video.invid_titulo || '');
-                    const fuente = String(video.invid_fuente_origen || '');
-                    const categoria = String(video.invid_categoria || '');
-                    const depto = String(video.invid_depto_desc || '');
-                    const fecha = String(video.invid_published_at || '');
-                    const url = String(video.invid_url || '#');
-                %>
-                <tr
-                    data-id="<%= vidId %>"
-                    data-titulo="<%= titulo %>"
-                    data-fuente="<%= fuente %>"
-                    data-categoria="<%= categoria %>"
-                    data-depto="<%= depto %>"
-                    data-fecha="<%= fecha %>">
-                    <td><%= vidId %></td>
-                    <td class="video-titulo" title="<%= titulo %>"><%= titulo %></td>
-                    <td><%= fuente || '-' %></td>
-                    <td><%= categoria || '-' %></td>
-                    <td><%= depto || '-' %></td>
-                    <td><%= fecha ? new Date(fecha).toLocaleDateString() : '-' %></td>
+                <tr data-id="<%= video.invid_id %>"
+                    data-titulo="<%= video.invid_titulo %>" 
+                    data-fecha="<%= video.invid_published_at %>"
+                    data-fuente="<%= video.invid_fuente_origen || '' %>"
+                    data-categoria="<%= video.invid_categoria || '' %>">
+                    <td><%= video.invid_id %></td>
+                    <td><%= video.invid_titulo %></td>
+                    <td><%= new Date(video.invid_published_at).toLocaleDateString() %></td>
+                    <td><%= video.invid_fuente_origen || 'N/A' %></td>
+                    <td><%= video.invid_categoria || 'N/A' %></td>
                     <td>
-                        <a href="<%= url %>" target="_blank" rel="noopener noreferrer" class="btn-view" title="Ver video">👁️ Ver</a>
-
-                        <!-- CORRECCIÓN: uso seguro de JSON.stringify para pasar parámetros -->
-                        <button class="btn-edit" type="button"
-                            onclick='openModal(
-                                <%- JSON.stringify(vidId) %>,
-                                <%- JSON.stringify(fuente) %>,
-                                <%- JSON.stringify(categoria) %>,
-                                <%- JSON.stringify(depto) %>
-                            )'
-                            aria-label="Editar video">
+                        <a href="<%= video.invid_url %>" target="_blank" class="video-link">Ver Video</a>
+                    </td>
+                    <td>
+                        <button class="btn-edit" 
+                                data-video-id="<%= video.invid_id %>"
+                                data-fuente="<%= video.invid_fuente_origen || '' %>"
+                                data-categoria="<%= video.invid_categoria || '' %>"
+                                onclick="openModalFromButton(this)">
                             ✏️ Editar
                         </button>
                     </td>
@@ -238,37 +264,96 @@
                 <% }); %>
             </tbody>
         </table>
-
         <div id="noResults" class="no-results" style="display: none;">
             No se encontraron videos que coincidan con tu búsqueda
         </div>
     </div>
 </div>
 
-<!-- Modal de Edición -->
-<div id="editModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+<!-- Modal Crear Video -->
+<div id="createModal" class="modal">
     <div class="modal-content">
-        <button class="close" aria-label="Cerrar modal" onclick="closeModal()">&times;</button>
-        <h2 id="modalTitle" style="margin-bottom:20px;">Editar Categorización</h2>
+        <span class="close" onclick="closeCreateModal()">&times;</span>
+        <h2 style="margin-bottom:20px;">Agregar Nuevo Video</h2>
+
+        <form id="createForm">
+            <div class="form-group">
+                <label>Video ID <span class="required">*</span></label>
+                <input type="text" id="createVideoId" placeholder="Ej: ABC123XYZ" required>
+                <small style="color: #666;">ID único del video (requerido)</small>
+            </div>
+
+            <div class="form-group">
+                <label>Título <span class="required">*</span></label>
+                <input type="text" id="createTitulo" placeholder="Título del video" required>
+            </div>
+
+            <div class="form-group">
+                <label>Fecha de Publicación <span class="required">*</span></label>
+                <input type="datetime-local" id="createFechaPublicacion" required>
+            </div>
+
+            <div class="form-group">
+                <label>URL del Video <span class="required">*</span></label>
+                <input type="text" id="createUrl" placeholder="https://..." required>
+            </div>
+
+            <div class="form-group">
+                <label>Fuente Origen:</label>
+                <div class="field-type-toggle">
+                    <button type="button" class="type-btn active" onclick="setCreateFuenteType('departamento')">Departamento</button>
+                </div>
+                <select id="createFuenteDepartamento" style="display: block;">
+                    <option value="">Seleccione un departamento...</option>
+                </select>
+                <input type="text" id="createFuenteTexto" placeholder="Ingrese la fuente..." style="display: none;">
+            </div>
+
+            <div class="form-group">
+                <label>Categoría:</label>
+                <div class="field-type-toggle">
+                    <button type="button" class="type-btn active" onclick="setCreateCategoriaType('cadena')">Cadena</button>
+                </div>
+                <select id="createCategoriaCadena" style="display: block;">
+                    <option value="">Seleccione una cadena...</option>
+                </select>
+                <input type="text" id="createCategoriaTexto" placeholder="Ingrese la categoría..." style="display: none;">
+            </div>
+
+            <button type="submit" class="btn-save">💾 Crear Video</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Video -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 style="margin-bottom:20px;">Editar Video</h2>
 
         <form id="editForm">
             <input type="hidden" id="videoId">
 
             <div class="form-group">
-                <label for="fuenteOrigen">Fuente de Origen:</label>
-                <input type="text" id="fuenteOrigen" class="filter-input" placeholder="Ej: YouTube, Vimeo, etc.">
-            </div>
-
-            <div class="form-group">
-                <label for="categoria">Categoría (Sistema productivo o cadena):</label>
-                <input type="text" id="categoria" class="filter-input" placeholder="Ej: Agricultura, Ganadería, etc.">
-            </div>
-
-            <div class="form-group">
-                <label for="departamento">Departamento:</label>
-                <select id="departamento" class="filter-select">
-                    <option value="">Sin departamento</option>
+                <label>Fuente Origen:</label>
+                <div class="field-type-toggle">
+                    <button type="button" class="type-btn active" onclick="setFuenteType('departamento')">Departamento</button>
+                </div>
+                <select id="fuenteDepartamento" style="display: block;">
+                    <option value="">Seleccione un departamento...</option>
                 </select>
+                <input type="text" id="fuenteTexto" placeholder="Ingrese la fuente..." style="display: none;">
+            </div>
+
+            <div class="form-group">
+                <label>Categoría:</label>
+                <div class="field-type-toggle">
+                    <button type="button" class="type-btn active" onclick="setCategoriaType('cadena')">Cadena</button>
+                </div>
+                <select id="categoriaCadena" style="display: block;">
+                    <option value="">Seleccione una cadena...</option>
+                </select>
+                <input type="text" id="categoriaTexto" placeholder="Ingrese la categoría..." style="display: none;">
             </div>
 
             <button type="submit" class="btn-save">💾 Guardar Cambios</button>
@@ -278,237 +363,474 @@
 
 <script>
 let allRows = [];
+let currentFuenteType = 'departamento';
+let currentCategoriaType = 'cadena';
+let createFuenteType = 'departamento';
+let createCategoriaType = 'cadena';
 
-/* Mostrar alertas */
-function showAlert(msg, type = 'success') {
-    const alert = document.getElementById('alert');
-    alert.textContent = msg;
-    alert.className = `alert alert-${type}`;
-    alert.style.display = 'block';
-    clearTimeout(showAlert._t);
-    showAlert._t = setTimeout(() => alert.style.display = 'none', 2500);
-}
-
-/* Inicialización */
+// Inicializar filtros
 document.addEventListener('DOMContentLoaded', function() {
     allRows = Array.from(document.querySelectorAll('#videosTable tr'));
     populateFilters();
-
+    
     // Event listeners para filtros
-    const si = document.getElementById('searchInput');
-    if (si) si.addEventListener('input', applyFilters);
-
-    const fID = document.getElementById('filterID');
-    if (fID) fID.addEventListener('input', applyFilters);
-
-    const ids = ['filterFuente','filterCategoria','filterDepartamento'];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('change', applyFilters);
-    });
-
-    // Inicializar contador/estado
-    applyFilters();
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('filterID').addEventListener('input', applyFilters);
+    document.getElementById('filterFechaDesde').addEventListener('change', applyFilters);
+    document.getElementById('filterFechaHasta').addEventListener('change', applyFilters);
+    document.getElementById('filterFuente').addEventListener('change', applyFilters);
+    document.getElementById('filterCategoria').addEventListener('change', applyFilters);
 });
 
-/* Poblar selects con los valores de las filas */
 function populateFilters() {
     const fuentes = new Set();
     const categorias = new Set();
-    const departamentos = new Set();
-
+    
     allRows.forEach(row => {
-        const f = (row.dataset.fuente || '').trim();
-        const c = (row.dataset.categoria || '').trim();
-        const d = (row.dataset.depto || '').trim();
-        if (f) fuentes.add(f);
-        if (c) categorias.add(c);
-        if (d) departamentos.add(d);
+        if (row.dataset.fuente) fuentes.add(row.dataset.fuente);
+        if (row.dataset.categoria) categorias.add(row.dataset.categoria);
     });
-
+    
     const fuenteSelect = document.getElementById('filterFuente');
+    Array.from(fuentes).sort().forEach(fuente => {
+        const option = document.createElement('option');
+        option.value = fuente;
+        option.textContent = fuente;
+        fuenteSelect.appendChild(option);
+    });
+    
     const categoriaSelect = document.getElementById('filterCategoria');
-    const deptoSelect = document.getElementById('filterDepartamento');
-
-    if (fuenteSelect) {
-        fuenteSelect.innerHTML = '<option value=\"\">Todas las fuentes</option>';
-        Array.from(fuentes).sort().forEach(f => {
-            const o = document.createElement('option');
-            o.value = f; o.textContent = f;
-            fuenteSelect.appendChild(o);
-        });
-    }
-
-    if (categoriaSelect) {
-        categoriaSelect.innerHTML = '<option value=\"\">Todas las categorías</option>';
-        Array.from(categorias).sort().forEach(c => {
-            const o = document.createElement('option');
-            o.value = c; o.textContent = c;
-            categoriaSelect.appendChild(o);
-        });
-    }
-
-    if (deptoSelect) {
-        deptoSelect.innerHTML = '<option value=\"\">Todos los departamentos</option>';
-        Array.from(departamentos).sort().forEach(d => {
-            const o = document.createElement('option');
-            o.value = d; o.textContent = d;
-            deptoSelect.appendChild(o);
-        });
-    }
+    Array.from(categorias).sort().forEach(categoria => {
+        const option = document.createElement('option');
+        option.value = categoria;
+        option.textContent = categoria;
+        categoriaSelect.appendChild(option);
+    });
 }
 
-/* Filtrado */
 function applyFilters() {
-    const searchText = (document.getElementById('searchInput')?.value || '').toLowerCase();
-    const filterID = (document.getElementById('filterID')?.value || '').toLowerCase();
-    const filterFuente = (document.getElementById('filterFuente')?.value || '');
-    const filterCategoria = (document.getElementById('filterCategoria')?.value || '');
-    const filterDepto = (document.getElementById('filterDepartamento')?.value || '');
-
+    const searchText = document.getElementById('searchInput').value.toLowerCase();
+    const filterID = document.getElementById('filterID').value.toLowerCase();
+    const filterFechaDesde = document.getElementById('filterFechaDesde').value;
+    const filterFechaHasta = document.getElementById('filterFechaHasta').value;
+    const filterFuente = document.getElementById('filterFuente').value;
+    const filterCategoria = document.getElementById('filterCategoria').value;
+    
     let visibleCount = 0;
-
+    
     allRows.forEach(row => {
-        const id = (row.dataset.id || '').toLowerCase();
-        const titulo = (row.dataset.titulo || '').toLowerCase();
-        const fuente = (row.dataset.fuente || '');
-        const categoria = (row.dataset.categoria || '');
-        const depto = (row.dataset.depto || '');
-
-        const matchSearch = !searchText || titulo.includes(searchText);
-        const matchID = !filterID || id.includes(filterID);
+        const id = row.dataset.id.toLowerCase();
+        const titulo = row.dataset.titulo.toLowerCase();
+        const fecha = row.dataset.fecha;
+        const fuente = row.dataset.fuente;
+        const categoria = row.dataset.categoria;
+        
+        const fechaVideo = new Date(fecha);
+        const fechaDesde = filterFechaDesde ? new Date(filterFechaDesde) : null;
+        const fechaHasta = filterFechaHasta ? new Date(filterFechaHasta) : null;
+        
+        const matchSearch = titulo.includes(searchText);
+        const matchID = id.includes(filterID);
+        const matchFechaDesde = !fechaDesde || fechaVideo >= fechaDesde;
+        const matchFechaHasta = !fechaHasta || fechaVideo <= fechaHasta;
         const matchFuente = !filterFuente || fuente === filterFuente;
         const matchCategoria = !filterCategoria || categoria === filterCategoria;
-        const matchDepto = !filterDepto || depto === filterDepto;
-
-        const matched = matchSearch && matchID && matchFuente && matchCategoria && matchDepto;
-
-        row.style.display = matched ? '' : 'none';
-        if (matched) visibleCount++;
+        
+        if (matchSearch && matchID && matchFechaDesde && matchFechaHasta && matchFuente && matchCategoria) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
     });
-
+    
     document.getElementById('resultCount').textContent = visibleCount;
-    document.getElementById('totalCount').textContent = allRows.length;
-
+    
     const noResults = document.getElementById('noResults');
-    const table = document.querySelector('.table-wrapper table') || document.querySelector('table');
+    const table = document.querySelector('table');
     if (visibleCount === 0) {
-        if (noResults) noResults.style.display = 'block';
-        if (table) table.style.display = 'none';
+        noResults.style.display = 'block';
+        table.style.display = 'none';
     } else {
-        if (noResults) noResults.style.display = 'none';
-        if (table) table.style.display = 'table';
+        noResults.style.display = 'none';
+        table.style.display = 'table';
     }
 }
 
-/* Limpiar filtros */
 function clearFilters() {
-    const elems = ['searchInput','filterID','filterFuente','filterCategoria','filterDepartamento'];
-    elems.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterID').value = '';
+    document.getElementById('filterFechaDesde').value = '';
+    document.getElementById('filterFechaHasta').value = '';
+    document.getElementById('filterFuente').value = '';
+    document.getElementById('filterCategoria').value = '';
     applyFilters();
 }
 
-/* Cargar departamentos (API) */
-async function loadDepartamentos() {
-    const select = document.getElementById('departamento');
-    if (!select) return;
-    select.innerHTML = '<option value=\"\">Cargando departamentos...</option>';
+function showAlert(message, type) {
+    const alert = document.getElementById('alert');
+    alert.textContent = message;
+    alert.className = 'alert alert-' + type;
+    alert.style.display = 'block';
+    setTimeout(() => {
+        alert.style.display = 'none';
+    }, 4000);
+}
+
+// ============ FUNCIONES MODAL CREAR ============
+
+async function openCreateModal() {
+    document.getElementById("createModal").style.display = "block";
+    await Promise.all([loadCreateDepartamentos(), loadCreateCadenas()]);
+    
+    // Resetear formulario
+    document.getElementById('createForm').reset();
+    setCreateFuenteType('departamento');
+    setCreateCategoriaType('cadena');
+}
+
+function closeCreateModal() {
+    document.getElementById("createModal").style.display = "none";
+}
+
+function setCreateFuenteType(type) {
+    createFuenteType = type;
+    const deptoSelect = document.getElementById('createFuenteDepartamento');
+    const textoInput = document.getElementById('createFuenteTexto');
+    const buttons = document.querySelectorAll('#createModal .form-group:nth-of-type(5) .type-btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'departamento') {
+        deptoSelect.style.display = 'block';
+        textoInput.style.display = 'none';
+        buttons[0].classList.add('active');
+    } else {
+        deptoSelect.style.display = 'none';
+        textoInput.style.display = 'block';
+        buttons[1].classList.add('active');
+    }
+}
+
+function setCreateCategoriaType(type) {
+    createCategoriaType = type;
+    const cadenaSelect = document.getElementById('createCategoriaCadena');
+    const textoInput = document.getElementById('createCategoriaTexto');
+    const buttons = document.querySelectorAll('#createModal .form-group:nth-of-type(6) .type-btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'cadena') {
+        cadenaSelect.style.display = 'block';
+        textoInput.style.display = 'none';
+        buttons[0].classList.add('active');
+    } else {
+        cadenaSelect.style.display = 'none';
+        textoInput.style.display = 'block';
+        buttons[1].classList.add('active');
+    }
+}
+
+async function loadCreateDepartamentos() {
+    const select = document.getElementById("createFuenteDepartamento");
+    select.innerHTML = `<option value="">Cargando departamentos...</option>`;
+
     try {
-        const res = await fetch('/videos/api/departamentos');
-        if (!res.ok) throw new Error('No OK');
-        const deps = await res.json();
-        select.innerHTML = '<option value=\"\">Sin departamento</option>';
-        deps.forEach(dep => {
-            const opt = document.createElement('option');
-            opt.value = dep.dep_desc;
-            opt.textContent = dep.dep_desc;
-            select.appendChild(opt);
+        const res = await fetch("/videos/api/departamentos");
+        if (!res.ok) throw new Error('Error al cargar departamentos');
+        
+        const departamentos = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione un departamento...</option>`;
+        departamentos.forEach(dep => {
+            const option = document.createElement("option");
+            option.value = dep.dep_id.toString();
+            option.textContent = dep.dep_desc;
+            select.appendChild(option);
         });
     } catch (err) {
-        console.error('Error al cargar departamentos', err);
-        select.innerHTML = '<option value=\"\">Error al cargar departamentos</option>';
-        showAlert('Error al cargar departamentos', 'error');
+        console.error('Error cargando departamentos:', err);
+        select.innerHTML = `<option value="">Error al cargar departamentos</option>`;
+        showAlert("Error al cargar departamentos", "error");
     }
 }
 
-/* Modal: abrir / cerrar */
-async function openModal(videoId, fuente = '', categoria = '', depto = '') {
-    const modal = document.getElementById('editModal');
-    if (!modal) return;
-    modal.setAttribute('aria-hidden', 'false');
-    modal.style.display = 'block';
+async function loadCreateCadenas() {
+    const select = document.getElementById("createCategoriaCadena");
+    select.innerHTML = `<option value="">Cargando cadenas...</option>`;
 
-    // Cargar departamentos y luego asignar valores
-    await loadDepartamentos();
-
-    document.getElementById('videoId').value = videoId ?? '';
-    document.getElementById('fuenteOrigen').value = fuente ?? '';
-    document.getElementById('categoria').value = categoria ?? '';
-
-    const departamentoSelect = document.getElementById('departamento');
-    if (depto && departamentoSelect) {
-        const found = Array.from(departamentoSelect.options).find(o => o.value === depto);
-        departamentoSelect.value = found ? depto : '';
-    } else if (departamentoSelect) {
-        departamentoSelect.value = '';
+    try {
+        const res = await fetch("/videos/api/cadenas");
+        if (!res.ok) throw new Error('Error al cargar cadenas');
+        
+        const cadenas = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
+        cadenas.forEach(cad => {
+            const option = document.createElement("option");
+            option.value = cad.espcad_cad_id.toString();
+            option.textContent = cad.espcad_cad_desc;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando cadenas:', err);
+        select.innerHTML = `<option value="">Error al cargar cadenas</option>`;
+        showAlert("Error al cargar cadenas", "error");
     }
-
-    // Focus accesible
-    document.getElementById('fuenteOrigen').focus();
 }
 
-function closeModal() {
-    const modal = document.getElementById('editModal');
-    if (!modal) return;
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden', 'true');
-}
-
-window.onclick = function (e) {
-    const modal = document.getElementById('editModal');
-    if (!modal) return;
-    if (e.target === modal) closeModal();
-};
-
-/* Guardar cambios */
-document.getElementById('editForm')?.addEventListener('submit', async function(e) {
+// Form submit para crear video
+document.getElementById("createForm").addEventListener("submit", async function (e) {
     e.preventDefault();
-    const videoId = document.getElementById('videoId').value;
-    const fuenteOrigen = (document.getElementById('fuenteOrigen').value || '').trim();
-    const categoria = (document.getElementById('categoria').value || '').trim();
-    const departamento = (document.getElementById('departamento').value || '') || null;
 
-    if (!videoId) {
-        showAlert('ID de video inválido', 'error');
+    const videoId = document.getElementById("createVideoId").value.trim();
+    const titulo = document.getElementById("createTitulo").value.trim();
+    const fechaPublicacion = document.getElementById("createFechaPublicacion").value;
+    const url = document.getElementById("createUrl").value.trim();
+    
+    let fuenteOrigen = '';
+    let categoria = '';
+    
+    if (createFuenteType === 'departamento') {
+        fuenteOrigen = document.getElementById("createFuenteDepartamento").value;
+    } else {
+        fuenteOrigen = document.getElementById("createFuenteTexto").value.trim();
+    }
+    
+    if (createCategoriaType === 'cadena') {
+        categoria = document.getElementById("createCategoriaCadena").value;
+    } else {
+        categoria = document.getElementById("createCategoriaTexto").value.trim();
+    }
+
+    if (!videoId || !titulo || !fechaPublicacion || !url) {
+        showAlert("Por favor complete todos los campos obligatorios", "error");
         return;
     }
 
-    const body = {
-        invid_fuente_origen: fuenteOrigen || null,
-        invid_categoria: categoria || null,
-        invid_depto_desc: departamento || null
-    };
-
     try {
-        const res = await fetch(`/videos/api/${encodeURIComponent(videoId)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+        const res = await fetch(`/videos/api/create`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                invid_video_id: videoId,
+                invid_titulo: titulo,
+                invid_published_at: fechaPublicacion,
+                invid_url: url,
+                invid_fuente_origen: fuenteOrigen,
+                invid_categoria: categoria
+            })
         });
 
         const data = await res.json();
-        if (data && data.success) {
-            showAlert('Cambios guardados exitosamente', 'success');
-            closeModal();
-            setTimeout(() => location.reload(), 700);
+
+        if (data.success) {
+            showAlert("Video creado exitosamente", "success");
+            closeCreateModal();
+            setTimeout(() => location.reload(), 800);
         } else {
-            showAlert(data?.message || 'Error al guardar cambios', 'error');
+            showAlert(data.message || "Error al crear video", "error");
         }
     } catch (err) {
-        console.error('Error al guardar:', err);
-        showAlert('Error al guardar cambios', 'error');
+        console.error('Error al crear:', err);
+        showAlert("Error al crear video", "error");
     }
 });
+
+// ============ FUNCIONES MODAL EDITAR ============
+
+function setFuenteType(type) {
+    currentFuenteType = type;
+    const deptoSelect = document.getElementById('fuenteDepartamento');
+    const textoInput = document.getElementById('fuenteTexto');
+    const buttons = document.querySelectorAll('#editModal .form-group:nth-of-type(2) .type-btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'departamento') {
+        deptoSelect.style.display = 'block';
+        textoInput.style.display = 'none';
+        buttons[0].classList.add('active');
+    } else {
+        deptoSelect.style.display = 'none';
+        textoInput.style.display = 'block';
+        buttons[1].classList.add('active');
+    }
+}
+
+function setCategoriaType(type) {
+    currentCategoriaType = type;
+    const cadenaSelect = document.getElementById('categoriaCadena');
+    const textoInput = document.getElementById('categoriaTexto');
+    const buttons = document.querySelectorAll('#editModal .form-group:nth-of-type(3) .type-btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'cadena') {
+        cadenaSelect.style.display = 'block';
+        textoInput.style.display = 'none';
+        buttons[0].classList.add('active');
+    } else {
+        cadenaSelect.style.display = 'none';
+        textoInput.style.display = 'block';
+        buttons[1].classList.add('active');
+    }
+}
+
+async function loadDepartamentos() {
+    const select = document.getElementById("fuenteDepartamento");
+    select.innerHTML = `<option value="">Cargando departamentos...</option>`;
+
+    try {
+        const res = await fetch("/videos/api/departamentos");
+        if (!res.ok) throw new Error('Error al cargar departamentos');
+        
+        const departamentos = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione un departamento...</option>`;
+        departamentos.forEach(dep => {
+            const option = document.createElement("option");
+            option.value = dep.dep_id.toString();
+            option.textContent = dep.dep_desc;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando departamentos:', err);
+        select.innerHTML = `<option value="">Error al cargar departamentos</option>`;
+        showAlert("Error al cargar departamentos", "error");
+    }
+}
+
+async function loadCadenas() {
+    const select = document.getElementById("categoriaCadena");
+    select.innerHTML = `<option value="">Cargando cadenas...</option>`;
+
+    try {
+        const res = await fetch("/videos/api/cadenas");
+        if (!res.ok) throw new Error('Error al cargar cadenas');
+        
+        const cadenas = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
+        cadenas.forEach(cad => {
+            const option = document.createElement("option");
+            option.value = cad.espcad_cad_id.toString();
+            option.textContent = cad.espcad_cad_desc;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando cadenas:', err);
+        select.innerHTML = `<option value="">Error al cargar cadenas</option>`;
+        showAlert("Error al cargar cadenas", "error");
+    }
+}
+
+async function openModalFromButton(button) {
+    const videoId = button.dataset.videoId;
+    const fuenteActual = button.dataset.fuente;
+    const categoriaActual = button.dataset.categoria;
+    
+    document.getElementById("videoId").value = videoId;
+    document.getElementById("editModal").style.display = "block";
+    
+    await Promise.all([loadDepartamentos(), loadCadenas()]);
+    
+    // Determinar el tipo de fuente y setear valores
+    if (fuenteActual) {
+        const departamentos = await fetch("/videos/api/departamentos").then(r => r.json());
+        const esDepartamento = departamentos.some(d => d.dep_desc === fuenteActual);
+        
+        if (esDepartamento) {
+            setFuenteType('departamento');
+            const depto = departamentos.find(d => d.dep_desc === fuenteActual);
+            if (depto) {
+                document.getElementById("fuenteDepartamento").value = depto.dep_id.toString();
+            }
+        } else {
+            setFuenteType('texto');
+            document.getElementById("fuenteTexto").value = fuenteActual;
+        }
+    }
+    
+    // Determinar el tipo de categoría y setear valores
+    if (categoriaActual) {
+        const cadenas = await fetch("/videos/api/cadenas").then(r => r.json());
+        const esCadena = cadenas.some(c => c.espcad_cad_desc === categoriaActual);
+        
+        if (esCadena) {
+            setCategoriaType('cadena');
+            const cadena = cadenas.find(c => c.espcad_cad_desc === categoriaActual);
+            if (cadena) {
+                document.getElementById("categoriaCadena").value = cadena.espcad_cad_id.toString();
+            }
+        } else {
+            setCategoriaType('texto');
+            document.getElementById("categoriaTexto").value = categoriaActual;
+        }
+    }
+}
+
+function closeModal() {
+    document.getElementById("editModal").style.display = "none";
+}
+
+// Form submit para editar video
+document.getElementById("editForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const videoId = document.getElementById("videoId").value;
+    let fuenteOrigen = '';
+    let categoria = '';
+    
+    if (currentFuenteType === 'departamento') {
+        fuenteOrigen = document.getElementById("fuenteDepartamento").value;
+    } else {
+        fuenteOrigen = document.getElementById("fuenteTexto").value.trim();
+    }
+    
+    if (currentCategoriaType === 'cadena') {
+        categoria = document.getElementById("categoriaCadena").value;
+    } else {
+        categoria = document.getElementById("categoriaTexto").value.trim();
+    }
+
+    try {
+        const res = await fetch(`/videos/api/${videoId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                invid_fuente_origen: fuenteOrigen,
+                invid_categoria: categoria
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            showAlert("Video actualizado exitosamente", "success");
+            closeModal();
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showAlert(data.message || "Error al actualizar video", "error");
+        }
+    } catch (err) {
+        console.error('Error al actualizar:', err);
+        showAlert("Error al actualizar video", "error");
+    }
+});
+
+// Cerrar modales al hacer clic fuera de ellos
+window.onclick = function(event) {
+    const createModal = document.getElementById("createModal");
+    const editModal = document.getElementById("editModal");
+    
+    if (event.target == createModal) {
+        closeCreateModal();
+    }
+    if (event.target == editModal) {
+        closeModal();
+    }
+}
 </script>
 
 </body>

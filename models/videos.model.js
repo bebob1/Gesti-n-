@@ -2,8 +2,9 @@ const pool = require('../config/database');
 
 /**
  * Modelo de Videos
- * Contiene todas las queries relacionadas con videos, departamentos, categorías y fuentes
+ * Contiene todas las queries relacionadas con videos, departamentos y cadenas
  */
+
 const VideosModel = {
     /**
      * Obtener todos los videos ordenados por ID descendente
@@ -32,35 +33,7 @@ const VideosModel = {
     },
 
     /**
-     * Obtener todas las categorías únicas (sistema productivo o cadena)
-     */
-    async getAllCategorias() {
-        const query = `
-            SELECT DISTINCT invid_categoria as categoria
-            FROM intb_integracion_videos
-            WHERE invid_categoria IS NOT NULL
-            ORDER BY invid_categoria ASC
-        `;
-        const result = await pool.query(query);
-        return result.rows;
-    },
-
-    /**
-     * Obtener todas las fuentes de origen únicas
-     */
-    async getAllFuentes() {
-        const query = `
-            SELECT DISTINCT invid_fuente_origen as fuente
-            FROM intb_integracion_videos
-            WHERE invid_fuente_origen IS NOT NULL
-            ORDER BY invid_fuente_origen ASC
-        `;
-        const result = await pool.query(query);
-        return result.rows;
-    },
-
-    /**
-     * Obtener todos los departamentos
+     * Obtener todos los departamentos ordenados alfabéticamente
      */
     async getAllDepartamentos() {
         const query = `
@@ -73,18 +46,58 @@ const VideosModel = {
     },
 
     /**
-     * Actualizar categorización de un video
+     * Obtener un departamento por ID
      */
-    async updateVideoCategorizacion(videoId, fuenteOrigen, categoria, deptoDesc) {
+    async getDepartamentoById(depId) {
+        const query = `
+            SELECT dep_desc
+            FROM intb_depto
+            WHERE dep_id = $1
+        `;
+        const result = await pool.query(query, [depId]);
+        return result.rows[0];
+    },
+
+    /**
+     * Obtener todas las cadenas/especies ordenadas alfabéticamente
+     */
+    async getAllCadenas() {
+        const query = `
+            SELECT DISTINCT espcad_cad_id, espcad_cad_desc
+            FROM intb_especie_cadena
+            WHERE espcad_cad_desc IS NOT NULL
+            ORDER BY espcad_cad_desc ASC
+        `;
+        const result = await pool.query(query);
+        return result.rows;
+    },
+
+    /**
+     * Obtener una cadena por ID
+     */
+    async getCadenaById(cadId) {
+        const query = `
+            SELECT espcad_cad_desc
+            FROM intb_especie_cadena
+            WHERE espcad_cad_id = $1
+            LIMIT 1
+        `;
+        const result = await pool.query(query, [cadId]);
+        return result.rows[0];
+    },
+
+    /**
+     * Actualizar fuente origen y categoría de un video
+     */
+    async updateVideoCategoria(videoId, fuenteOrigen, categoria) {
         const query = `
             UPDATE intb_integracion_videos
             SET 
                 invid_fuente_origen = $1,
-                invid_categoria = $2,
-                invid_depto_desc = $3
-            WHERE invid_id = $4
+                invid_categoria = $2
+            WHERE invid_id = $3
         `;
-        const result = await pool.query(query, [fuenteOrigen, categoria, deptoDesc, videoId]);
+        const result = await pool.query(query, [fuenteOrigen, categoria, videoId]);
         return result.rowCount > 0;
     },
 

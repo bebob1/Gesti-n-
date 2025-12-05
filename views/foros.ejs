@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Foros</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background: white;
+            color: #2196F3;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-logout:hover {
+            background: #ff4757;
+            border-color: #ff4757;
+        }
+        
+        /* Contenedor principal */
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        h1 { color: #333; margin-bottom: 30px; text-align: center; }
+        
+        /* Botón agregar foro */
+        .top-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        
+        .btn-add {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-add:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        /* Filtros */
+        .filters-container { background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 25px; }
+        .search-bar { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .search-input-wrapper { flex: 1; min-width: 250px; }
+        .search-input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .search-input:focus { outline: none; border-color: #2196F3; }
+        
+        .filters-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .filter-group { flex: 1; min-width: 200px; }
+        .filter-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #666; font-weight: 600; }
+        .filter-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background: white; }
+        .filter-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .filter-input:focus { outline: none; border-color: #2196F3; }
+        
+        .btn-clear { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; white-space: nowrap; }
+        .btn-clear:hover { background: #5a6268; }
+        
+        .results-info { text-align: center; color: #666; font-size: 14px; margin-bottom: 15px; }
+        
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #2196F3; color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        tr:hover { background: #f9f9f9; }
+        .btn-edit { background: #FF9800; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .btn-edit:hover { background: #F57C00; }
+        
+        .foro-link { color: #2196F3; text-decoration: none; }
+        .foro-link:hover { text-decoration: underline; }
+        
+        .no-results { text-align: center; padding: 40px; color: #999; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow-y: auto; }
+        .modal-content { background: white; margin: 5% auto; padding: 30px; border-radius: 8px; width: 90%; max-width: 600px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .close { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
+        .close:hover { color: #000; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        select, input[type="text"], input[type="datetime-local"], textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; }
+        textarea { resize: vertical; min-height: 100px; }
+        .btn-save { background: #2196F3; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 15px; width: 100%; font-weight: 600; }
+        .btn-save:hover { background: #1976D2; }
+        .alert { padding: 12px; margin-bottom: 20px; border-radius: 4px; display: none; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        .field-type-toggle { display: flex; gap: 10px; margin-bottom: 10px; }
+        .type-btn { padding: 8px 16px; border: 2px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .type-btn.active { background: #2196F3; color: white; border-color: #2196F3; }
+        
+        .required { color: #ff4757; }
+        small { display: block; margin-top: 5px; font-size: 12px; color: #666; }
+        
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 10px; text-align: center; }
+            .header-left { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-left">
+        <a href="/" class="btn-back">← Volver al Menú</a>
+        <div class="header-title">💬 Administrador de Foros</div>
+    </div>
+    <a href="/logout" class="btn-logout">🚪 Cerrar Sesión</a>
+</div>
+
+<div class="container">
+    <div id="alert" class="alert"></div>
+
+    <!-- Botón para agregar foro -->
+    <div class="top-actions">
+        <button class="btn-add" onclick="openCreateModal()">➕ Agregar Nuevo Foro</button>
+    </div>
+
+    <!-- Filtros de Búsqueda -->
+    <div class="filters-container">
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por título del foro...">
+            </div>
+            <button class="btn-clear" onclick="clearFilters()">🔄 Limpiar Filtros</button>
+        </div>
+        
+        <div class="filters-row">
+            <div class="filter-group">
+                <label for="filterID">ID del Foro</label>
+                <input type="text" id="filterID" class="filter-input" placeholder="Buscar por ID...">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterFechaDesde">Fecha Desde</label>
+                <input type="date" id="filterFechaDesde" class="filter-input">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterFechaHasta">Fecha Hasta</label>
+                <input type="date" id="filterFechaHasta" class="filter-input">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterDepartamento">Departamento</label>
+                <select id="filterDepartamento" class="filter-select">
+                    <option value="">Todos los departamentos</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterCadena">Cadena</label>
+                <select id="filterCadena" class="filter-select">
+                    <option value="">Todas las cadenas</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="results-info">
+        Mostrando <strong id="resultCount"><%= foros.length %></strong> de <strong id="totalCount"><%= foros.length %></strong> foros
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Autor</th>
+                    <th>Fecha Publicación</th>
+                    <th>Respuestas</th>
+                    <th>Departamento</th>
+                    <th>Cadena</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="forosTable">
+                <% foros.forEach(foro => { %>
+                <tr data-id="<%= foro.info_foro_id %>"
+                    data-titulo="<%= foro.info_titulo %>" 
+                    data-fecha="<%= foro.info_fec_publicacion %>"
+                    data-departamento="<%= foro.info_dep_desc || '' %>"
+                    data-cadena="<%= foro.esca_esp_desc || '' %>">
+                    <td><%= foro.info_foro_id %></td>
+                    <td><%= foro.info_titulo %></td>
+                    <td><%= foro.info_autor %></td>
+                    <td><%= foro.info_fec_publicacion ? new Date(foro.info_fec_publicacion).toLocaleDateString() : 'N/A' %></td>
+                    <td><%= foro.info_num_respuestas %></td>
+                    <td><%= foro.info_dep_desc || 'N/A' %></td>
+                    <td><%= foro.esca_esp_desc || 'N/A' %></td>
+                    <td>
+                        <button class="btn-edit" 
+                                data-foro-id="<%= foro.info_foro_id %>"
+                                data-dep-id="<%= foro.info_dep_id || '' %>"
+                                data-dep-desc="<%= foro.info_dep_desc || '' %>"
+                                data-esca-id="<%= foro.esca_id || '' %>"
+                                data-esca-desc="<%= foro.esca_esp_desc || '' %>"
+                                onclick="openModalFromButton(this)">
+                            ✏️ Editar
+                        </button>
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+        <div id="noResults" class="no-results" style="display: none;">
+            No se encontraron foros que coincidan con tu búsqueda
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Foro -->
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCreateModal()">&times;</span>
+        <h2 style="margin-bottom:20px;">Agregar Nuevo Foro</h2>
+
+        <form id="createForm">
+            <div class="form-group">
+                <label>Foro ID <span class="required">*</span></label>
+                <input type="text" id="createForoId" placeholder="Ej: FORO123" required>
+                <small>ID único del foro (requerido)</small>
+            </div>
+
+            <div class="form-group">
+                <label>Título <span class="required">*</span></label>
+                <input type="text" id="createTitulo" placeholder="Título del foro" required>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción <span class="required">*</span></label>
+                <textarea id="createDescripcion" placeholder="Descripción del foro" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Autor <span class="required">*</span></label>
+                <input type="text" id="createAutor" placeholder="Nombre del autor" required>
+            </div>
+
+            <div class="form-group">
+                <label>Fecha de Publicación <span class="required">*</span></label>
+                <input type="datetime-local" id="createFechaPublicacion" required>
+            </div>
+
+            <div class="form-group">
+                <label>URL del Foro</label>
+                <input type="text" id="createUrl" placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label>Departamento:</label>
+                <div class="field-type-toggle">
+                    <button type="button" class="type-btn active" onclick="setCreateDepartamentoType('departamento')">Departamento</button>
+                </div>
+                <select id="createDepartamento" style="display: block;">
+                    <option value="">Seleccione un departamento...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Cadena:</label>
+                <div class="field-type-toggle">
+                    <button type="button" class="type-btn active" onclick="setCreateCadenaType('cadena')">Cadena</button>
+                </div>
+                <select id="createCadena" style="display: block;">
+                    <option value="">Seleccione una cadena...</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-save">💾 Crear Foro</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Foro -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 style="margin-bottom:20px;">Editar Foro</h2>
+
+        <form id="editForm">
+            <input type="hidden" id="foroId">
+
+            <div class="form-group">
+                <label>Departamento:</label>
+                <div class="field-type-toggle">
+                    <button type="button" class="type-btn active" onclick="setDepartamentoType('departamento')">Departamento</button>
+                </div>
+                <select id="departamento" style="display: block;">
+                    <option value="">Seleccione un departamento...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Cadena:</label>
+                <div class="field-type-toggle">
+                    <button type="button" class="type-btn active" onclick="setCadenaType('cadena')">Cadena</button>
+                </div>
+                <select id="cadena" style="display: block;">
+                    <option value="">Seleccione una cadena...</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-save">💾 Guardar Cambios</button>
+        </form>
+    </div>
+</div>
+
+<script>
+let allRows = [];
+let currentDepartamentoType = 'departamento';
+let currentCadenaType = 'cadena';
+let createDepartamentoType = 'departamento';
+let createCadenaType = 'cadena';
+
+// Inicializar filtros
+document.addEventListener('DOMContentLoaded', function() {
+    allRows = Array.from(document.querySelectorAll('#forosTable tr'));
+    populateFilters();
+    
+    // Event listeners para filtros
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('filterID').addEventListener('input', applyFilters);
+    document.getElementById('filterFechaDesde').addEventListener('change', applyFilters);
+    document.getElementById('filterFechaHasta').addEventListener('change', applyFilters);
+    document.getElementById('filterDepartamento').addEventListener('change', applyFilters);
+    document.getElementById('filterCadena').addEventListener('change', applyFilters);
+});
+
+function populateFilters() {
+    const departamentos = new Set();
+    const cadenas = new Set();
+    
+    allRows.forEach(row => {
+        if (row.dataset.departamento) departamentos.add(row.dataset.departamento);
+        if (row.dataset.cadena) cadenas.add(row.dataset.cadena);
+    });
+    
+    const deptoSelect = document.getElementById('filterDepartamento');
+    Array.from(departamentos).sort().forEach(depto => {
+        const option = document.createElement('option');
+        option.value = depto;
+        option.textContent = depto;
+        deptoSelect.appendChild(option);
+    });
+    
+    const cadenaSelect = document.getElementById('filterCadena');
+    Array.from(cadenas).sort().forEach(cadena => {
+        const option = document.createElement('option');
+        option.value = cadena;
+        option.textContent = cadena;
+        cadenaSelect.appendChild(option);
+    });
+}
+
+function applyFilters() {
+    const searchText = document.getElementById('searchInput').value.toLowerCase();
+    const filterID = document.getElementById('filterID').value.toLowerCase();
+    const filterFechaDesde = document.getElementById('filterFechaDesde').value;
+    const filterFechaHasta = document.getElementById('filterFechaHasta').value;
+    const filterDepto = document.getElementById('filterDepartamento').value;
+    const filterCadena = document.getElementById('filterCadena').value;
+    
+    let visibleCount = 0;
+    
+    allRows.forEach(row => {
+        const id = row.dataset.id.toLowerCase();
+        const titulo = row.dataset.titulo.toLowerCase();
+        const fecha = row.dataset.fecha;
+        const departamento = row.dataset.departamento;
+        const cadena = row.dataset.cadena;
+        
+        const fechaForo = new Date(fecha);
+        const fechaDesde = filterFechaDesde ? new Date(filterFechaDesde) : null;
+        const fechaHasta = filterFechaHasta ? new Date(filterFechaHasta) : null;
+        
+        const matchSearch = titulo.includes(searchText);
+        const matchID = id.includes(filterID);
+        const matchFechaDesde = !fechaDesde || fechaForo >= fechaDesde;
+        const matchFechaHasta = !fechaHasta || fechaForo <= fechaHasta;
+        const matchDepto = !filterDepto || departamento === filterDepto;
+        const matchCadena = !filterCadena || cadena === filterCadena;
+        
+        if (matchSearch && matchID && matchFechaDesde && matchFechaHasta && matchDepto && matchCadena) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('resultCount').textContent = visibleCount;
+    
+    const noResults = document.getElementById('noResults');
+    const table = document.querySelector('table');
+    if (visibleCount === 0) {
+        noResults.style.display = 'block';
+        table.style.display = 'none';
+    } else {
+        noResults.style.display = 'none';
+        table.style.display = 'table';
+    }
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterID').value = '';
+    document.getElementById('filterFechaDesde').value = '';
+    document.getElementById('filterFechaHasta').value = '';
+    document.getElementById('filterDepartamento').value = '';
+    document.getElementById('filterCadena').value = '';
+    applyFilters();
+}
+
+function showAlert(message, type) {
+    const alert = document.getElementById('alert');
+    alert.textContent = message;
+    alert.className = 'alert alert-' + type;
+    alert.style.display = 'block';
+    setTimeout(() => {
+        alert.style.display = 'none';
+    }, 4000);
+}
+
+// ============ FUNCIONES MODAL CREAR ============
+
+async function openCreateModal() {
+    document.getElementById("createModal").style.display = "block";
+    await Promise.all([loadCreateDepartamentos(), loadCreateCadenas()]);
+    
+    // Resetear formulario
+    document.getElementById('createForm').reset();
+    setCreateDepartamentoType('departamento');
+    setCreateCadenaType('cadena');
+}
+
+function closeCreateModal() {
+    document.getElementById("createModal").style.display = "none";
+}
+
+function setCreateDepartamentoType(type) {
+    createDepartamentoType = type;
+    const deptoSelect = document.getElementById('createDepartamento');
+    const buttons = document.querySelectorAll('#createModal .form-group:nth-of-type(7) .type-btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'departamento') {
+        deptoSelect.style.display = 'block';
+        buttons[0].classList.add('active');
+    }
+}
+
+function setCreateCadenaType(type) {
+    createCadenaType = type;
+    const cadenaSelect = document.getElementById('createCadena');
+    const buttons = document.querySelectorAll('#createModal .form-group:nth-of-type(8) .type-btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'cadena') {
+        cadenaSelect.style.display = 'block';
+        buttons[0].classList.add('active');
+    }
+}
+
+async function loadCreateDepartamentos() {
+    const select = document.getElementById("createDepartamento");
+    select.innerHTML = `<option value="">Cargando departamentos...</option>`;
+
+    try {
+        const res = await fetch("/foros/api/departamentos");
+        if (!res.ok) throw new Error('Error al cargar departamentos');
+        
+        const departamentos = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione un departamento...</option>`;
+        departamentos.forEach(dep => {
+            const option = document.createElement("option");
+            option.value = dep.dep_id.toString();
+            option.textContent = dep.dep_desc;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando departamentos:', err);
+        select.innerHTML = `<option value="">Error al cargar departamentos</option>`;
+        showAlert("Error al cargar departamentos", "error");
+    }
+}
+
+async function loadCreateCadenas() {
+    const select = document.getElementById("createCadena");
+    select.innerHTML = `<option value="">Cargando cadenas...</option>`;
+
+    try {
+        const res = await fetch("/foros/api/cadenas");
+        if (!res.ok) throw new Error('Error al cargar cadenas');
+        
+        const cadenas = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
+        cadenas.forEach(cad => {
+            const option = document.createElement("option");
+            option.value = cad.espcad_id.toString();
+            option.textContent = cad.espcad_cad_desc;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando cadenas:', err);
+        select.innerHTML = `<option value="">Error al cargar cadenas</option>`;
+        showAlert("Error al cargar cadenas", "error");
+    }
+}
+
+// Form submit para crear foro
+document.getElementById("createForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const foroId = document.getElementById("createForoId").value.trim();
+    const titulo = document.getElementById("createTitulo").value.trim();
+    const descripcion = document.getElementById("createDescripcion").value.trim();
+    const autor = document.getElementById("createAutor").value.trim();
+    const fechaPublicacion = document.getElementById("createFechaPublicacion").value;
+    const url = document.getElementById("createUrl").value.trim();
+    const depId = document.getElementById("createDepartamento").value;
+    const escaId = document.getElementById("createCadena").value;
+
+    if (!foroId || !titulo || !descripcion || !autor || !fechaPublicacion) {
+        showAlert("Por favor complete todos los campos obligatorios", "error");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/foros/api/create`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                info_foro_id: foroId,
+                info_titulo: titulo,
+                info_desc: descripcion,
+                info_autor: autor,
+                info_fec_publicacion: fechaPublicacion,
+                info_url: url,
+                info_dep_id: depId || null,
+                esca_id: escaId || null
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            showAlert("Foro creado exitosamente", "success");
+            closeCreateModal();
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showAlert(data.message || "Error al crear foro", "error");
+        }
+    } catch (err) {
+        console.error('Error al crear:', err);
+        showAlert("Error al crear foro", "error");
+    }
+});
+
+// ============ FUNCIONES MODAL EDITAR ============
+
+function setDepartamentoType(type) {
+    currentDepartamentoType = type;
+    const deptoSelect = document.getElementById('departamento');
+    const buttons = document.querySelectorAll('#editModal .form-group:nth-of-type(2) .type-btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'departamento') {
+        deptoSelect.style.display = 'block';
+        buttons[0].classList.add('active');
+    }
+}
+
+function setCadenaType(type) {
+    currentCadenaType = type;
+    const cadenaSelect = document.getElementById('cadena');
+    const buttons = document.querySelectorAll('#editModal .form-group:nth-of-type(3) .type-btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'cadena') {
+        cadenaSelect.style.display = 'block';
+        buttons[0].classList.add('active');
+    }
+}
+
+async function loadDepartamentos() {
+    const select = document.getElementById("departamento");
+    select.innerHTML = `<option value="">Cargando departamentos...</option>`;
+
+    try {
+        const res = await fetch("/foros/api/departamentos");
+        if (!res.ok) throw new Error('Error al cargar departamentos');
+        
+        const departamentos = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione un departamento...</option>`;
+        departamentos.forEach(dep => {
+            const option = document.createElement("option");
+            option.value = dep.dep_id.toString();
+            option.textContent = dep.dep_desc;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando departamentos:', err);
+        select.innerHTML = `<option value="">Error al cargar departamentos</option>`;
+        showAlert("Error al cargar departamentos", "error");
+    }
+}
+
+async function loadCadenas() {
+    const select = document.getElementById("cadena");
+    select.innerHTML = `<option value="">Cargando cadenas...</option>`;
+
+    try {
+        const res = await fetch("/foros/api/cadenas");
+        if (!res.ok) throw new Error('Error al cargar cadenas');
+        
+        const cadenas = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
+        cadenas.forEach(cad => {
+            const option = document.createElement("option");
+            option.value = cad.espcad_id.toString();
+            option.textContent = cad.espcad_cad_desc;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando cadenas:', err);
+        select.innerHTML = `<option value="">Error al cargar cadenas</option>`;
+        showAlert("Error al cargar cadenas", "error");
+    }
+}
+
+async function openModalFromButton(button) {
+    const foroId = button.dataset.foroId;
+    const depIdActual = button.dataset.depId;
+    const depDescActual = button.dataset.depDesc;
+    const escaIdActual = button.dataset.escaId;
+    const escaDescActual = button.dataset.escaDesc;
+    
+    document.getElementById("foroId").value = foroId;
+    document.getElementById("editModal").style.display = "block";
+    
+    await Promise.all([loadDepartamentos(), loadCadenas()]);
+    
+    // Setear departamento si existe
+    if (depIdActual) {
+        setDepartamentoType('departamento');
+        setTimeout(() => {
+            document.getElementById("departamento").value = depIdActual.toString();
+        }, 300);
+    }
+    
+    // Setear cadena si existe
+    if (escaIdActual) {
+        setCadenaType('cadena');
+        setTimeout(() => {
+            document.getElementById("cadena").value = escaIdActual.toString();
+        }, 300);
+    }
+}
+
+function closeModal() {
+    document.getElementById("editModal").style.display = "none";
+}
+
+// Form submit para editar foro
+document.getElementById("editForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const foroId = document.getElementById("foroId").value;
+    const depId = document.getElementById("departamento").value;
+    const escaId = document.getElementById("cadena").value;
+
+    if (!depId && !escaId) {
+        showAlert("Por favor seleccione al menos departamento o cadena", "error");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/foros/api/${foroId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                info_dep_id: depId || null,
+                esca_id: escaId || null
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            showAlert("Foro actualizado exitosamente", "success");
+            closeModal();
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showAlert(data.message || "Error al actualizar foro", "error");
+        }
+    } catch (err) {
+        console.error('Error al actualizar:', err);
+        showAlert("Error al actualizar foro", "error");
+    }
+});
+
+// Cerrar modales al hacer clic fuera de ellos
+window.onclick = function(event) {
+    const createModal = document.getElementById("createModal");
+    const editModal = document.getElementById("editModal");
+    
+    if (event.target == createModal) {
+        closeCreateModal();
+    }
+    if (event.target == editModal) {
+        closeModal();
+    }
+}
+</script>
+
+</body>
+</html>

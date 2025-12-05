@@ -17,7 +17,7 @@ app.set("view engine", "ejs");
 const indexRoutes = require('./routes/index');
 const eventosRoutes = require('./routes/eventos');
 const videosRoutes = require('./routes/videos');
-// const forosRoutes = require('./routes/foros');
+const forosRoutes = require('./routes/foros');
 
 // ============================
 // USAR RUTAS
@@ -25,7 +25,7 @@ const videosRoutes = require('./routes/videos');
 app.use('/', indexRoutes);
 app.use('/eventos', eventosRoutes);
 app.use('/videos', videosRoutes);
-// app.use('/foros', forosRoutes);
+app.use('/foros', forosRoutes);
 
 // ============================
 // START SERVER

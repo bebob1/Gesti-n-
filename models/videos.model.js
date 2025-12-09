@@ -9,15 +9,18 @@ const VideosModel = {
     /**
      * Obtener todos los videos ordenados por ID descendente
      */
-    async getAllVideos() {
-        const query = `
-            SELECT *
-            FROM intb_integracion_videos
-            ORDER BY invid_id DESC
-        `;
-        const result = await pool.query(query);
-        return result.rows;
-    },
+async getAllVideos() {
+    const query = `
+        SELECT v.*,
+               d.dep_id AS invid_fuente_origen_id
+        FROM intb_integracion_videos v
+        LEFT JOIN intb_depto d
+               ON d.dep_desc = v.invid_fuente_origen
+        ORDER BY invid_id DESC
+    `;
+    const result = await pool.query(query);
+    return result.rows;
+},
 
     /**
      * Obtener un video por ID

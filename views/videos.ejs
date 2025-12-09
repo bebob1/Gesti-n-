@@ -241,7 +241,7 @@
                 <tr data-id="<%= video.invid_id %>"
                     data-titulo="<%= video.invid_titulo %>" 
                     data-fecha="<%= video.invid_published_at %>"
-                    data-fuente="<%= video.invid_fuente_origen || '' %>"
+                    data-fuente="<%= video.invid_fuente_origen_id || '' %>"
                     data-cadena="<%= video.esca_esp_desc || '' %>">
                     <td><%= video.invid_id %></td>
                     <td><%= video.invid_titulo %></td>
@@ -254,7 +254,7 @@
                     <td>
                         <button class="btn-edit" 
                                 data-video-id="<%= video.invid_id %>"
-                                data-fuente-id="<%= video.invid_fuente_origen || '' %>"
+                                data-fuente-id="<%= video.invid_fuente_origen_id || '' %>"
                                 data-espcad-id="<%= video.espcad_id || '' %>"
                                 data-cadena-desc="<%= video.esca_esp_desc || '' %>"
                                 onclick="openModalFromButton(this)">

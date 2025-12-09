@@ -73,76 +73,34 @@ const ForosModel = {
     },
 
     /**
-     * Obtener una cadena por ID
+     * Obtener una cadena por ID (espcad_id)
      */
-    async getCadenaById(cadId) {
+    async getCadenaById(espcadId) {
         const query = `
             SELECT espcad_cad_desc, espcad_esp_desc
             FROM intb_especie_cadena
             WHERE espcad_id = $1
             LIMIT 1
         `;
-        const result = await pool.query(query, [cadId]);
+        const result = await pool.query(query, [espcadId]);
         return result.rows[0];
     },
 
     /**
      * Actualizar departamento y/o cadena de un foro
      */
-    async updateForoUbicacionCadena(foroId, depId, depDesc, escaId, escaEspDesc) {
+    async updateForoUbicacionCadena(foroId, depId, depDesc, espcadId, espcadEspDesc) {
         const query = `
             UPDATE intb_integracion_foros
             SET 
                 info_dep_id = $1,
                 info_dep_desc = $2,
-                esca_id = $3,
-                esca_esp_desc = $4,
+                espcad_id = $3,
+                espcad_esp_desc = $4,
                 info_update_at = NOW()
             WHERE info_foro_id = $5
         `;
-        const result = await pool.query(query, [depId, depDesc, escaId, escaEspDesc, foroId]);
-        return result.rowCount > 0;
-    },
-
-    /**
-     * Crear un nuevo foro
-     */
-    async createForo(foroData) {
-        const query = `
-            INSERT INTO intb_integracion_foros 
-            (info_foro_id, info_titulo, info_desc, info_autor, info_fec_publicacion, 
-             info_num_respuestas, info_fuente, info_url, info_dep_id, info_dep_desc, 
-             esca_id, esca_esp_desc)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-            RETURNING *
-        `;
-        const values = [
-            foroData.foroId,
-            foroData.titulo,
-            foroData.descripcion,
-            foroData.autor,
-            foroData.fechaPublicacion,
-            foroData.numRespuestas || 0,
-            foroData.fuente || 'Linkata',
-            foroData.url,
-            foroData.depId,
-            foroData.depDesc,
-            foroData.escaId,
-            foroData.escaEspDesc
-        ];
-        const result = await pool.query(query, values);
-        return result.rows[0];
-    },
-
-    /**
-     * Eliminar un foro por ID
-     */
-    async deleteForo(foroId) {
-        const query = `
-            DELETE FROM intb_integracion_foros
-            WHERE info_foro_id = $1
-        `;
-        const result = await pool.query(query, [foroId]);
+        const result = await pool.query(query, [depId, depDesc, espcadId, espcadEspDesc, foroId]);
         return result.rowCount > 0;
     }
 };

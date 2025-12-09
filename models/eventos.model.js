@@ -2,7 +2,7 @@ const pool = require('../config/database');
 
 /**
  * Modelo de Eventos
- * Contiene todas las queries relacionadas con eventos, departamentos y ciudades
+ * Contiene todas las queries relacionadas con eventos, departamentos y cadenas
  */
 
 const EventosModel = {
@@ -59,6 +59,36 @@ const EventosModel = {
     },
 
     /**
+     * Obtener todas las cadenas (pero se guardarán en columna de especie)
+     * Retorna espcad_id y espcad_cad_desc
+     */
+    async getAllCadenas() {
+        const query = `
+            SELECT DISTINCT espcad_id, espcad_cad_desc
+            FROM intb_especie_cadena
+            WHERE espcad_cad_desc IS NOT NULL
+            ORDER BY espcad_cad_desc ASC
+        `;
+        const result = await pool.query(query);
+        return result.rows;
+    },
+
+    /**
+     * Obtener una cadena por espcad_id
+     * Retorna la descripción de la cadena que se guardará en esca_esp_desc
+     */
+    async getCadenaById(espcadId) {
+        const query = `
+            SELECT espcad_cad_desc
+            FROM intb_especie_cadena
+            WHERE espcad_id = $1
+            LIMIT 1
+        `;
+        const result = await pool.query(query, [espcadId]);
+        return result.rows[0];
+    },
+
+    /**
      * Obtener ciudades por departamento
      */
     async getCiudadesByDepartamento(depId) {
@@ -86,31 +116,35 @@ const EventosModel = {
     },
 
     /**
-     * Actualizar ubicación de un evento
+     * Actualizar departamento y/o especie de un evento
+     * Nota: Se muestra "cadena" al usuario pero se guarda en columnas de "especie"
+     * - espcad_id -> columna espcad_id
+     * - espcad_cad_desc (cadena) -> columna esca_esp_desc
      */
-    async updateEventoUbicacion(eventId, deptoId, deptoDesc, munId, munDesc) {
+    async updateEventoDeptoEspecie(eventId, deptoId, deptoDesc, espcadId, escaEspDesc) {
         const query = `
             UPDATE intb_integracion_eventos
             SET 
                 event_depto_id = $1,
                 event_depto_desc = $2,
-                event_munic_id = $3,
-                event_munic_desc = $4,
+                espcad_id = $3,
+                esca_esp_desc = $4,
                 event_fec_actualizacion = NOW()
             WHERE event_id = $5
         `;
-        const result = await pool.query(query, [deptoId, deptoDesc, munId, munDesc, eventId]);
+        const result = await pool.query(query, [deptoId, deptoDesc, espcadId, escaEspDesc, eventId]);
         return result.rowCount > 0;
     },
 
     /**
-     * Crear un nuevo evento (ejemplo para futuras expansiones)
+     * Crear un nuevo evento
      */
     async createEvento(eventoData) {
         const query = `
             INSERT INTO intb_integracion_eventos 
-            (event_nombre, event_depto_id, event_depto_desc, event_munic_id, event_munic_desc, event_fec_inicio, event_tipo_evento_desc)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            (event_nombre, event_depto_id, event_depto_desc, event_munic_id, event_munic_desc, 
+             event_fec_inicio, espcad_id, esca_esp_desc)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
         `;
         const values = [
@@ -120,14 +154,15 @@ const EventosModel = {
             eventoData.munId,
             eventoData.munDesc,
             eventoData.fechaInicio,
-            eventoData.tipoEvento
+            eventoData.espcadId,
+            eventoData.escaEspDesc
         ];
         const result = await pool.query(query, values);
         return result.rows[0];
     },
 
     /**
-     * Eliminar un evento por ID (ejemplo para futuras expansiones)
+     * Eliminar un evento por ID
      */
     async deleteEvento(eventId) {
         const query = `

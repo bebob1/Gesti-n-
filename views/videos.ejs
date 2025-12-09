@@ -211,9 +211,9 @@
             </div>
             
             <div class="filter-group">
-                <label for="filterCategoria">Categoría</label>
-                <select id="filterCategoria" class="filter-select">
-                    <option value="">Todas las categorías</option>
+                <label for="filterCadena">Cadena</label>
+                <select id="filterCadena" class="filter-select">
+                    <option value="">Todas las cadenas</option>
                 </select>
             </div>
         </div>
@@ -231,7 +231,7 @@
                     <th>Título</th>
                     <th>Fecha Publicación</th>
                     <th>Fuente Origen</th>
-                    <th>Categoría</th>
+                    <th>Cadena</th>
                     <th>URL</th>
                     <th>Acciones</th>
                 </tr>
@@ -242,20 +242,21 @@
                     data-titulo="<%= video.invid_titulo %>" 
                     data-fecha="<%= video.invid_published_at %>"
                     data-fuente="<%= video.invid_fuente_origen || '' %>"
-                    data-categoria="<%= video.invid_categoria || '' %>">
+                    data-cadena="<%= video.esca_esp_desc || '' %>">
                     <td><%= video.invid_id %></td>
                     <td><%= video.invid_titulo %></td>
                     <td><%= new Date(video.invid_published_at).toLocaleDateString() %></td>
                     <td><%= video.invid_fuente_origen || 'N/A' %></td>
-                    <td><%= video.invid_categoria || 'N/A' %></td>
+                    <td><%= video.esca_esp_desc || 'N/A' %></td>
                     <td>
                         <a href="<%= video.invid_url %>" target="_blank" class="video-link">Ver Video</a>
                     </td>
                     <td>
                         <button class="btn-edit" 
                                 data-video-id="<%= video.invid_id %>"
-                                data-fuente="<%= video.invid_fuente_origen || '' %>"
-                                data-categoria="<%= video.invid_categoria || '' %>"
+                                data-fuente-id="<%= video.invid_fuente_origen || '' %>"
+                                data-espcad-id="<%= video.espcad_id || '' %>"
+                                data-cadena-desc="<%= video.esca_esp_desc || '' %>"
                                 onclick="openModalFromButton(this)">
                             ✏️ Editar
                         </button>
@@ -306,18 +307,20 @@
                 <select id="createFuenteDepartamento" style="display: block;">
                     <option value="">Seleccione un departamento...</option>
                 </select>
-                <input type="text" id="createFuenteTexto" placeholder="Ingrese la fuente..." style="display: none;">
             </div>
 
             <div class="form-group">
-                <label>Categoría:</label>
+                <label>Cadena-Especie:</label>
                 <div class="field-type-toggle">
-                    <button type="button" class="type-btn active" onclick="setCreateCategoriaType('cadena')">Cadena</button>
+                    <button type="button" class="type-btn active" onclick="setCreateCadenaType('cadena')">Cadena</button>
+                    <button type="button" class="type-btn" onclick="setCreateCadenaType('especie')">Especie</button>
                 </div>
-                <select id="createCategoriaCadena" style="display: block;">
+                <select id="createCadenaCadena" style="display: block;">
                     <option value="">Seleccione una cadena...</option>
                 </select>
-                <input type="text" id="createCategoriaTexto" placeholder="Ingrese la categoría..." style="display: none;">
+                <select id="createCadenaEspecie" style="display: none;">
+                    <option value="">Primero seleccione una cadena...</option>
+                </select>
             </div>
 
             <button type="submit" class="btn-save">💾 Crear Video</button>
@@ -333,6 +336,8 @@
 
         <form id="editForm">
             <input type="hidden" id="videoId">
+            <input type="hidden" id="currentFuenteId">
+            <input type="hidden" id="currentEspcadId">
 
             <div class="form-group">
                 <label>Fuente Origen:</label>
@@ -342,18 +347,20 @@
                 <select id="fuenteDepartamento" style="display: block;">
                     <option value="">Seleccione un departamento...</option>
                 </select>
-                <input type="text" id="fuenteTexto" placeholder="Ingrese la fuente..." style="display: none;">
             </div>
 
             <div class="form-group">
-                <label>Categoría:</label>
+                <label>Cadena-Especie:</label>
                 <div class="field-type-toggle">
-                    <button type="button" class="type-btn active" onclick="setCategoriaType('cadena')">Cadena</button>
+                    <button type="button" class="type-btn active" onclick="setCadenaType('cadena')">Cadena</button>
+                    <button type="button" class="type-btn" onclick="setCadenaType('especie')">Especie</button>
                 </div>
-                <select id="categoriaCadena" style="display: block;">
+                <select id="cadenaCadena" style="display: block;">
                     <option value="">Seleccione una cadena...</option>
                 </select>
-                <input type="text" id="categoriaTexto" placeholder="Ingrese la categoría..." style="display: none;">
+                <select id="cadenaEspecie" style="display: none;">
+                    <option value="">Primero seleccione una cadena...</option>
+                </select>
             </div>
 
             <button type="submit" class="btn-save">💾 Guardar Cambios</button>
@@ -364,9 +371,9 @@
 <script>
 let allRows = [];
 let currentFuenteType = 'departamento';
-let currentCategoriaType = 'cadena';
+let currentCadenaType = 'cadena';
 let createFuenteType = 'departamento';
-let createCategoriaType = 'cadena';
+let createCadenaType = 'cadena';
 
 // Inicializar filtros
 document.addEventListener('DOMContentLoaded', function() {
@@ -379,16 +386,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('filterFechaDesde').addEventListener('change', applyFilters);
     document.getElementById('filterFechaHasta').addEventListener('change', applyFilters);
     document.getElementById('filterFuente').addEventListener('change', applyFilters);
-    document.getElementById('filterCategoria').addEventListener('change', applyFilters);
+    document.getElementById('filterCadena').addEventListener('change', applyFilters);
 });
 
 function populateFilters() {
     const fuentes = new Set();
-    const categorias = new Set();
+    const cadenas = new Set();
     
     allRows.forEach(row => {
         if (row.dataset.fuente) fuentes.add(row.dataset.fuente);
-        if (row.dataset.categoria) categorias.add(row.dataset.categoria);
+        if (row.dataset.cadena) cadenas.add(row.dataset.cadena);
     });
     
     const fuenteSelect = document.getElementById('filterFuente');
@@ -399,12 +406,12 @@ function populateFilters() {
         fuenteSelect.appendChild(option);
     });
     
-    const categoriaSelect = document.getElementById('filterCategoria');
-    Array.from(categorias).sort().forEach(categoria => {
+    const cadenaSelect = document.getElementById('filterCadena');
+    Array.from(cadenas).sort().forEach(cadena => {
         const option = document.createElement('option');
-        option.value = categoria;
-        option.textContent = categoria;
-        categoriaSelect.appendChild(option);
+        option.value = cadena;
+        option.textContent = cadena;
+        cadenaSelect.appendChild(option);
     });
 }
 
@@ -414,7 +421,7 @@ function applyFilters() {
     const filterFechaDesde = document.getElementById('filterFechaDesde').value;
     const filterFechaHasta = document.getElementById('filterFechaHasta').value;
     const filterFuente = document.getElementById('filterFuente').value;
-    const filterCategoria = document.getElementById('filterCategoria').value;
+    const filterCadena = document.getElementById('filterCadena').value;
     
     let visibleCount = 0;
     
@@ -423,7 +430,7 @@ function applyFilters() {
         const titulo = row.dataset.titulo.toLowerCase();
         const fecha = row.dataset.fecha;
         const fuente = row.dataset.fuente;
-        const categoria = row.dataset.categoria;
+        const cadena = row.dataset.cadena;
         
         const fechaVideo = new Date(fecha);
         const fechaDesde = filterFechaDesde ? new Date(filterFechaDesde) : null;
@@ -434,9 +441,9 @@ function applyFilters() {
         const matchFechaDesde = !fechaDesde || fechaVideo >= fechaDesde;
         const matchFechaHasta = !fechaHasta || fechaVideo <= fechaHasta;
         const matchFuente = !filterFuente || fuente === filterFuente;
-        const matchCategoria = !filterCategoria || categoria === filterCategoria;
+        const matchCadena = !filterCadena || cadena === filterCadena;
         
-        if (matchSearch && matchID && matchFechaDesde && matchFechaHasta && matchFuente && matchCategoria) {
+        if (matchSearch && matchID && matchFechaDesde && matchFechaHasta && matchFuente && matchCadena) {
             row.style.display = '';
             visibleCount++;
         } else {
@@ -463,7 +470,7 @@ function clearFilters() {
     document.getElementById('filterFechaDesde').value = '';
     document.getElementById('filterFechaHasta').value = '';
     document.getElementById('filterFuente').value = '';
-    document.getElementById('filterCategoria').value = '';
+    document.getElementById('filterCadena').value = '';
     applyFilters();
 }
 
@@ -486,7 +493,7 @@ async function openCreateModal() {
     // Resetear formulario
     document.getElementById('createForm').reset();
     setCreateFuenteType('departamento');
-    setCreateCategoriaType('cadena');
+    setCreateCadenaType('cadena');
 }
 
 function closeCreateModal() {
@@ -496,38 +503,34 @@ function closeCreateModal() {
 function setCreateFuenteType(type) {
     createFuenteType = type;
     const deptoSelect = document.getElementById('createFuenteDepartamento');
-    const textoInput = document.getElementById('createFuenteTexto');
-    const buttons = document.querySelectorAll('#createModal .form-group:nth-of-type(5) .type-btn');
+    const formGroup = deptoSelect.closest('.form-group');
+    const buttons = formGroup.querySelectorAll('.type-btn');
     
     buttons.forEach(btn => btn.classList.remove('active'));
     
     if (type === 'departamento') {
         deptoSelect.style.display = 'block';
-        textoInput.style.display = 'none';
-        buttons[0].classList.add('active');
-    } else {
-        deptoSelect.style.display = 'none';
-        textoInput.style.display = 'block';
-        buttons[1].classList.add('active');
+        if (buttons[0]) buttons[0].classList.add('active');
     }
 }
 
-function setCreateCategoriaType(type) {
-    createCategoriaType = type;
-    const cadenaSelect = document.getElementById('createCategoriaCadena');
-    const textoInput = document.getElementById('createCategoriaTexto');
-    const buttons = document.querySelectorAll('#createModal .form-group:nth-of-type(6) .type-btn');
+function setCreateCadenaType(type) {
+    createCadenaType = type;
+    const cadenaSelect = document.getElementById('createCadenaCadena');
+    const especieSelect = document.getElementById('createCadenaEspecie');
+    const formGroup = cadenaSelect.closest('.form-group');
+    const buttons = formGroup.querySelectorAll('.type-btn');
     
     buttons.forEach(btn => btn.classList.remove('active'));
     
     if (type === 'cadena') {
         cadenaSelect.style.display = 'block';
-        textoInput.style.display = 'none';
-        buttons[0].classList.add('active');
-    } else {
-        cadenaSelect.style.display = 'none';
-        textoInput.style.display = 'block';
-        buttons[1].classList.add('active');
+        especieSelect.style.display = 'none';
+        if (buttons[0]) buttons[0].classList.add('active');
+    } else if (type === 'especie') {
+        cadenaSelect.style.display = 'block';
+        especieSelect.style.display = 'block';
+        if (buttons[1]) buttons[1].classList.add('active');
     }
 }
 
@@ -556,7 +559,7 @@ async function loadCreateDepartamentos() {
 }
 
 async function loadCreateCadenas() {
-    const select = document.getElementById("createCategoriaCadena");
+    const select = document.getElementById("createCadenaCadena");
     select.innerHTML = `<option value="">Cargando cadenas...</option>`;
 
     try {
@@ -568,14 +571,45 @@ async function loadCreateCadenas() {
         select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
         cadenas.forEach(cad => {
             const option = document.createElement("option");
-            option.value = cad.espcad_cad_id.toString();
+            option.value = cad.espcad_id.toString();
             option.textContent = cad.espcad_cad_desc;
             select.appendChild(option);
+        });
+
+        // Event listener para cargar especies cuando se selecciona una cadena
+        select.addEventListener('change', async function() {
+            if (this.value && createCadenaType === 'especie') {
+                await loadCreateEspecies(this.value);
+            }
         });
     } catch (err) {
         console.error('Error cargando cadenas:', err);
         select.innerHTML = `<option value="">Error al cargar cadenas</option>`;
         showAlert("Error al cargar cadenas", "error");
+    }
+}
+
+async function loadCreateEspecies(espcadId) {
+    const select = document.getElementById("createCadenaEspecie");
+    select.innerHTML = `<option value="">Cargando especies...</option>`;
+
+    try {
+        const res = await fetch(`/videos/api/especies/${espcadId}`);
+        if (!res.ok) throw new Error('Error al cargar especies');
+        
+        const especies = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione una especie...</option>`;
+        especies.forEach(esp => {
+            const option = document.createElement("option");
+            option.value = esp.espcad_id.toString();
+            option.textContent = esp.espcad_esp_desc;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando especies:', err);
+        select.innerHTML = `<option value="">Error al cargar especies</option>`;
+        showAlert("Error al cargar especies", "error");
     }
 }
 
@@ -589,18 +623,25 @@ document.getElementById("createForm").addEventListener("submit", async function 
     const url = document.getElementById("createUrl").value.trim();
     
     let fuenteOrigen = '';
-    let categoria = '';
+    let espcadId = '';
+    let escaEspDesc = '';
     
     if (createFuenteType === 'departamento') {
         fuenteOrigen = document.getElementById("createFuenteDepartamento").value;
-    } else {
-        fuenteOrigen = document.getElementById("createFuenteTexto").value.trim();
     }
     
-    if (createCategoriaType === 'cadena') {
-        categoria = document.getElementById("createCategoriaCadena").value;
-    } else {
-        categoria = document.getElementById("createCategoriaTexto").value.trim();
+    if (createCadenaType === 'cadena') {
+        espcadId = document.getElementById("createCadenaCadena").value;
+        if (espcadId) {
+            const selectedOption = document.getElementById("createCadenaCadena").selectedOptions[0];
+            escaEspDesc = selectedOption.textContent;
+        }
+    } else if (createCadenaType === 'especie') {
+        espcadId = document.getElementById("createCadenaEspecie").value;
+        if (espcadId) {
+            const selectedOption = document.getElementById("createCadenaEspecie").selectedOptions[0];
+            escaEspDesc = selectedOption.textContent;
+        }
     }
 
     if (!videoId || !titulo || !fechaPublicacion || !url) {
@@ -617,8 +658,9 @@ document.getElementById("createForm").addEventListener("submit", async function 
                 invid_titulo: titulo,
                 invid_published_at: fechaPublicacion,
                 invid_url: url,
-                invid_fuente_origen: fuenteOrigen,
-                invid_categoria: categoria
+                invid_fuente_origen: fuenteOrigen || null,
+                espcad_id: espcadId || null,
+                esca_esp_desc: escaEspDesc || null
             })
         });
 
@@ -642,38 +684,34 @@ document.getElementById("createForm").addEventListener("submit", async function 
 function setFuenteType(type) {
     currentFuenteType = type;
     const deptoSelect = document.getElementById('fuenteDepartamento');
-    const textoInput = document.getElementById('fuenteTexto');
-    const buttons = document.querySelectorAll('#editModal .form-group:nth-of-type(2) .type-btn');
+    const formGroup = deptoSelect.closest('.form-group');
+    const buttons = formGroup.querySelectorAll('.type-btn');
     
     buttons.forEach(btn => btn.classList.remove('active'));
     
     if (type === 'departamento') {
         deptoSelect.style.display = 'block';
-        textoInput.style.display = 'none';
-        buttons[0].classList.add('active');
-    } else {
-        deptoSelect.style.display = 'none';
-        textoInput.style.display = 'block';
-        buttons[1].classList.add('active');
+        if (buttons[0]) buttons[0].classList.add('active');
     }
 }
 
-function setCategoriaType(type) {
-    currentCategoriaType = type;
-    const cadenaSelect = document.getElementById('categoriaCadena');
-    const textoInput = document.getElementById('categoriaTexto');
-    const buttons = document.querySelectorAll('#editModal .form-group:nth-of-type(3) .type-btn');
+function setCadenaType(type) {
+    currentCadenaType = type;
+    const cadenaSelect = document.getElementById('cadenaCadena');
+    const especieSelect = document.getElementById('cadenaEspecie');
+    const formGroup = cadenaSelect.closest('.form-group');
+    const buttons = formGroup.querySelectorAll('.type-btn');
     
     buttons.forEach(btn => btn.classList.remove('active'));
     
     if (type === 'cadena') {
         cadenaSelect.style.display = 'block';
-        textoInput.style.display = 'none';
-        buttons[0].classList.add('active');
-    } else {
-        cadenaSelect.style.display = 'none';
-        textoInput.style.display = 'block';
-        buttons[1].classList.add('active');
+        especieSelect.style.display = 'none';
+        if (buttons[0]) buttons[0].classList.add('active');
+    } else if (type === 'especie') {
+        cadenaSelect.style.display = 'block';
+        especieSelect.style.display = 'block';
+        if (buttons[1]) buttons[1].classList.add('active');
     }
 }
 
@@ -702,7 +740,7 @@ async function loadDepartamentos() {
 }
 
 async function loadCadenas() {
-    const select = document.getElementById("categoriaCadena");
+    const select = document.getElementById("cadenaCadena");
     select.innerHTML = `<option value="">Cargando cadenas...</option>`;
 
     try {
@@ -714,9 +752,16 @@ async function loadCadenas() {
         select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
         cadenas.forEach(cad => {
             const option = document.createElement("option");
-            option.value = cad.espcad_cad_id.toString();
+            option.value = cad.espcad_id.toString();
             option.textContent = cad.espcad_cad_desc;
             select.appendChild(option);
+        });
+
+        // Event listener para cargar especies cuando se selecciona una cadena
+        select.addEventListener('change', async function() {
+            if (this.value && currentCadenaType === 'especie') {
+                await loadEspecies(this.value);
+            }
         });
     } catch (err) {
         console.error('Error cargando cadenas:', err);
@@ -725,48 +770,69 @@ async function loadCadenas() {
     }
 }
 
+async function loadEspecies(espcadId) {
+    const select = document.getElementById("cadenaEspecie");
+    select.innerHTML = `<option value="">Cargando especies...</option>`;
+
+    try {
+        const res = await fetch(`/videos/api/especies/${espcadId}`);
+        if (!res.ok) throw new Error('Error al cargar especies');
+        
+        const especies = await res.json();
+        
+        select.innerHTML = `<option value="">Seleccione una especie...</option>`;
+        especies.forEach(esp => {
+            const option = document.createElement("option");
+            option.value = esp.espcad_id.toString();
+            option.textContent = esp.espcad_esp_desc;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando especies:', err);
+        select.innerHTML = `<option value="">Error al cargar especies</option>`;
+        showAlert("Error al cargar especies", "error");
+    }
+}
+
 async function openModalFromButton(button) {
     const videoId = button.dataset.videoId;
-    const fuenteActual = button.dataset.fuente;
-    const categoriaActual = button.dataset.categoria;
+    const fuenteIdActual = button.dataset.fuenteId;
+    const espcadIdActual = button.dataset.espcadId;
+    const cadenaDescActual = button.dataset.cadenaDesc;
     
     document.getElementById("videoId").value = videoId;
+    document.getElementById("currentFuenteId").value = fuenteIdActual || '';
+    document.getElementById("currentEspcadId").value = espcadIdActual || '';
     document.getElementById("editModal").style.display = "block";
     
-    await Promise.all([loadDepartamentos(), loadCadenas()]);
-    
-    // Determinar el tipo de fuente y setear valores
-    if (fuenteActual) {
-        const departamentos = await fetch("/videos/api/departamentos").then(r => r.json());
-        const esDepartamento = departamentos.some(d => d.dep_desc === fuenteActual);
+    try {
+        // Cargar departamentos y cadenas
+        await loadDepartamentos();
+        await loadCadenas();
         
-        if (esDepartamento) {
+        // Esperar un poco para que los selects se llenen
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Setear fuente origen (departamento) si existe
+        if (fuenteIdActual && fuenteIdActual !== '' && fuenteIdActual !== 'null') {
             setFuenteType('departamento');
-            const depto = departamentos.find(d => d.dep_desc === fuenteActual);
-            if (depto) {
-                document.getElementById("fuenteDepartamento").value = depto.dep_id.toString();
+            const fuenteSelect = document.getElementById("fuenteDepartamento");
+            if (fuenteSelect) {
+                fuenteSelect.value = fuenteIdActual.toString();
             }
-        } else {
-            setFuenteType('texto');
-            document.getElementById("fuenteTexto").value = fuenteActual;
         }
-    }
-    
-    // Determinar el tipo de categoría y setear valores
-    if (categoriaActual) {
-        const cadenas = await fetch("/videos/api/cadenas").then(r => r.json());
-        const esCadena = cadenas.some(c => c.espcad_cad_desc === categoriaActual);
         
-        if (esCadena) {
-            setCategoriaType('cadena');
-            const cadena = cadenas.find(c => c.espcad_cad_desc === categoriaActual);
-            if (cadena) {
-                document.getElementById("categoriaCadena").value = cadena.espcad_cad_id.toString();
+        // Setear cadena si existe (usando espcad_id)
+        if (espcadIdActual && espcadIdActual !== '' && espcadIdActual !== 'null') {
+            setCadenaType('cadena');
+            const cadenaSelect = document.getElementById("cadenaCadena");
+            if (cadenaSelect) {
+                cadenaSelect.value = espcadIdActual.toString();
             }
-        } else {
-            setCategoriaType('texto');
-            document.getElementById("categoriaTexto").value = categoriaActual;
         }
+    } catch (error) {
+        console.error('Error al cargar datos del modal:', error);
+        showAlert("Error al cargar los datos. Verifique la conexión.", "error");
     }
 }
 
@@ -779,28 +845,39 @@ document.getElementById("editForm").addEventListener("submit", async function (e
     e.preventDefault();
 
     const videoId = document.getElementById("videoId").value;
-    let fuenteOrigen = '';
-    let categoria = '';
+    const currentFuenteId = document.getElementById("currentFuenteId").value;
+    const currentEspcadId = document.getElementById("currentEspcadId").value;
+    const fuenteOrigen = document.getElementById("fuenteDepartamento").value;
     
-    if (currentFuenteType === 'departamento') {
-        fuenteOrigen = document.getElementById("fuenteDepartamento").value;
-    } else {
-        fuenteOrigen = document.getElementById("fuenteTexto").value.trim();
-    }
+    let espcadId = '';
+    let escaEspDesc = '';
     
-    if (currentCategoriaType === 'cadena') {
-        categoria = document.getElementById("categoriaCadena").value;
-    } else {
-        categoria = document.getElementById("categoriaTexto").value.trim();
+    if (currentCadenaType === 'cadena') {
+        espcadId = document.getElementById("cadenaCadena").value;
+        if (espcadId) {
+            const selectedOption = document.getElementById("cadenaCadena").selectedOptions[0];
+            escaEspDesc = selectedOption.textContent;
+        }
+    } else if (currentCadenaType === 'especie') {
+        espcadId = document.getElementById("cadenaEspecie").value;
+        if (espcadId) {
+            const selectedOption = document.getElementById("cadenaEspecie").selectedOptions[0];
+            escaEspDesc = selectedOption.textContent;
+        }
     }
+
+    // Usar valores actuales si no se seleccionó ninguno nuevo
+    const finalFuente = fuenteOrigen || currentFuenteId || null;
+    const finalEspcadId = espcadId || currentEspcadId || null;
 
     try {
         const res = await fetch(`/videos/api/${videoId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                invid_fuente_origen: fuenteOrigen,
-                invid_categoria: categoria
+                invid_fuente_origen: finalFuente,
+                espcad_id: finalEspcadId,
+                esca_esp_desc: escaEspDesc || null
             })
         });
 

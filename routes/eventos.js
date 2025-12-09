@@ -35,56 +35,75 @@ router.get('/api/departamentos', async (req, res) => {
 });
 
 /**
- * GET /eventos/api/ciudades/:depId
- * Devuelve las ciudades de un departamento específico
+ * GET /eventos/api/cadenas
+ * Devuelve todas las cadenas en formato JSON
+ * (Se muestran cadenas pero se guardarán en columnas de especie)
  */
-router.get('/api/ciudades/:depId', async (req, res) => {
-    const { depId } = req.params;
-    
+router.get('/api/cadenas', async (req, res) => {
     try {
-        const ciudades = await EventosModel.getCiudadesByDepartamento(depId);
-        res.json(ciudades);
+        const cadenas = await EventosModel.getAllCadenas();
+        res.json(cadenas);
     } catch (err) {
-        console.error('ERROR al cargar ciudades:', err);
-        res.status(500).json({ error: true, message: 'Error al cargar ciudades' });
+        console.error('ERROR al cargar cadenas:', err);
+        res.status(500).json({ error: true, message: 'Error al cargar cadenas' });
     }
 });
 
 /**
  * POST /eventos/api/:id
- * Actualiza la ubicación de un evento
+ * Actualiza el departamento y/o especie (mostrando cadena) de un evento
  */
 router.post('/api/:id', async (req, res) => {
     const { id } = req.params;
-    const { event_depto_id, event_munic_id } = req.body;
+    const { event_depto_id, espcad_id } = req.body;
 
     try {
-        // Obtener descripción del departamento
-        const departamento = await EventosModel.getDepartamentoById(event_depto_id);
+        // Obtener el evento actual para mantener valores existentes
+        const eventoActual = await EventosModel.getEventoById(id);
         
-        // Obtener descripción del municipio
-        const ciudad = await EventosModel.getCiudadById(event_munic_id);
-
-        if (!departamento || !ciudad) {
-            return res.status(400).json({ 
+        if (!eventoActual) {
+            return res.status(404).json({ 
                 success: false, 
-                message: 'Departamento o municipio no encontrado' 
+                message: 'Evento no encontrado' 
             });
         }
 
-        // Actualizar el evento
-        const updated = await EventosModel.updateEventoUbicacion(
+        // Usar valores actuales si no se envían nuevos
+        let deptoIdFinal = event_depto_id || eventoActual.event_depto_id;
+        let deptoDescFinal = eventoActual.event_depto_desc;
+        let espcadIdFinal = espcad_id || eventoActual.espcad_id;
+        let escaEspDescFinal = eventoActual.esca_esp_desc;
+
+        // Si se envió un nuevo departamento, obtener su descripción
+        if (event_depto_id && !isNaN(event_depto_id)) {
+            const departamento = await EventosModel.getDepartamentoById(event_depto_id);
+            if (departamento) {
+                deptoDescFinal = departamento.dep_desc;
+            }
+        }
+
+        // Si se envió un nuevo espcad_id, obtener la descripción de la CADENA
+        if (espcad_id && !isNaN(espcad_id)) {
+            const cadena = await EventosModel.getCadenaById(espcad_id);
+            if (cadena) {
+                // Guardamos la CADENA (espcad_cad_desc) en la columna de especie (esca_esp_desc)
+                escaEspDescFinal = cadena.espcad_cad_desc;
+            }
+        }
+
+        // Actualizar el evento con los valores finales
+        const updated = await EventosModel.updateEventoDeptoEspecie(
             id,
-            event_depto_id,
-            departamento.dep_desc,
-            event_munic_id,
-            ciudad.ciu_desc
+            deptoIdFinal,
+            deptoDescFinal,
+            espcadIdFinal,
+            escaEspDescFinal
         );
 
         if (updated) {
             res.json({ success: true, message: 'Evento actualizado correctamente' });
         } else {
-            res.status(404).json({ success: false, message: 'Evento no encontrado' });
+            res.status(500).json({ success: false, message: 'Error al actualizar evento' });
         }
 
     } catch (err) {

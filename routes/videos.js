@@ -59,7 +59,7 @@ router.post('/api/create', async (req, res) => {
         invid_published_at, 
         invid_url, 
         invid_fuente_origen, 
-        invid_categoria 
+        espcad_id 
     } = req.body;
 
     try {
@@ -73,7 +73,7 @@ router.post('/api/create', async (req, res) => {
 
         // Obtener descripciones si se proporcionan IDs
         let fuenteOrigenDesc = invid_fuente_origen;
-        let categoriaDesc = invid_categoria;
+        let escaEspDesc = null;
 
         // Si fuente origen es un ID de departamento, obtener descripción
         if (invid_fuente_origen && !isNaN(invid_fuente_origen)) {
@@ -83,11 +83,11 @@ router.post('/api/create', async (req, res) => {
             }
         }
 
-        // Si categoría es un ID de cadena, obtener descripción
-        if (invid_categoria && !isNaN(invid_categoria)) {
-            const cadena = await VideosModel.getCadenaById(invid_categoria);
+        // Si espcad_id es un ID, obtener la descripción de la CADENA
+        if (espcad_id && !isNaN(espcad_id)) {
+            const cadena = await VideosModel.getCadenaById(espcad_id);
             if (cadena) {
-                categoriaDesc = cadena.espcad_cad_desc;
+                escaEspDesc = cadena.espcad_cad_desc;
             }
         }
 
@@ -98,7 +98,8 @@ router.post('/api/create', async (req, res) => {
             publishedAt: invid_published_at,
             url: invid_url,
             fuenteOrigen: fuenteOrigenDesc || null,
-            categoria: categoriaDesc || null
+            espcadId: espcad_id || null,
+            escaEspDesc: escaEspDesc
         };
 
         const newVideo = await VideosModel.createVideo(videoData);
@@ -120,7 +121,7 @@ router.post('/api/create', async (req, res) => {
         console.error('ERROR al crear video:', err);
         
         // Verificar si es error de duplicado
-        if (err.code === '23505') { // Código de PostgreSQL para unique violation
+        if (err.code === '23505') {
             return res.status(400).json({ 
                 success: false, 
                 message: 'Ya existe un video con ese Video ID' 
@@ -136,52 +137,56 @@ router.post('/api/create', async (req, res) => {
 
 /**
  * POST /videos/api/:id
- * Actualiza la fuente origen y categoría de un video
+ * Actualiza la fuente origen y cadena (especie) de un video
  */
 router.post('/api/:id', async (req, res) => {
     const { id } = req.params;
-    const { invid_fuente_origen, invid_categoria } = req.body;
+    const { invid_fuente_origen, espcad_id } = req.body;
 
     try {
-        // Validar que se reciban los datos
-        if (!invid_fuente_origen && !invid_categoria) {
-            return res.status(400).json({ 
+        // Obtener el video actual para mantener valores existentes
+        const videoActual = await VideosModel.getVideoById(id);
+        
+        if (!videoActual) {
+            return res.status(404).json({ 
                 success: false, 
-                message: 'Debe proporcionar fuente origen o categoría' 
+                message: 'Video no encontrado' 
             });
         }
 
-        // Obtener descripciones si se proporcionan IDs
-        let fuenteOrigenDesc = invid_fuente_origen;
-        let categoriaDesc = invid_categoria;
+        // Usar valores actuales si no se envían nuevos
+        let fuenteOrigenFinal = invid_fuente_origen || videoActual.invid_fuente_origen;
+        let espcadIdFinal = espcad_id || videoActual.espcad_id;
+        let escaEspDescFinal = videoActual.esca_esp_desc;
 
-        // Si fuente origen es un ID de departamento, obtener descripción
+        // Si se envió una nueva fuente origen que es ID, obtener descripción
         if (invid_fuente_origen && !isNaN(invid_fuente_origen)) {
             const departamento = await VideosModel.getDepartamentoById(invid_fuente_origen);
             if (departamento) {
-                fuenteOrigenDesc = departamento.dep_desc;
+                fuenteOrigenFinal = departamento.dep_desc;
             }
         }
 
-        // Si categoría es un ID de cadena, obtener descripción
-        if (invid_categoria && !isNaN(invid_categoria)) {
-            const cadena = await VideosModel.getCadenaById(invid_categoria);
+        // Si se envió un nuevo espcad_id, obtener la descripción de la CADENA
+        if (espcad_id && !isNaN(espcad_id)) {
+            const cadena = await VideosModel.getCadenaById(espcad_id);
             if (cadena) {
-                categoriaDesc = cadena.espcad_cad_desc;
+                escaEspDescFinal = cadena.espcad_cad_desc;
             }
         }
 
-        // Actualizar el video
-        const updated = await VideosModel.updateVideoCategoria(
+        // Actualizar el video con los valores finales
+        const updated = await VideosModel.updateVideoFuenteCadena(
             id,
-            fuenteOrigenDesc,
-            categoriaDesc
+            fuenteOrigenFinal,
+            espcadIdFinal,
+            escaEspDescFinal
         );
 
         if (updated) {
             res.json({ success: true, message: 'Video actualizado correctamente' });
         } else {
-            res.status(404).json({ success: false, message: 'Video no encontrado' });
+            res.status(500).json({ success: false, message: 'Error al actualizar video' });
         }
 
     } catch (err) {

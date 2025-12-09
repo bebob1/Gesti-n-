@@ -76,31 +76,6 @@
         
         h1 { color: #333; margin-bottom: 30px; text-align: center; }
         
-        /* Botón agregar foro */
-        .top-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 20px;
-        }
-        
-        .btn-add {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-add:hover {
-            background: #45a049;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-        }
-        
         /* Filtros */
         .filters-container { background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 25px; }
         .search-bar { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
@@ -139,8 +114,7 @@
         .close:hover { color: #000; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
-        select, input[type="text"], input[type="datetime-local"], textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; }
-        textarea { resize: vertical; min-height: 100px; }
+        select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; }
         .btn-save { background: #2196F3; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 15px; width: 100%; font-weight: 600; }
         .btn-save:hover { background: #1976D2; }
         .alert { padding: 12px; margin-bottom: 20px; border-radius: 4px; display: none; }
@@ -150,9 +124,6 @@
         .field-type-toggle { display: flex; gap: 10px; margin-bottom: 10px; }
         .type-btn { padding: 8px 16px; border: 2px solid #ddd; background: white; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .type-btn.active { background: #2196F3; color: white; border-color: #2196F3; }
-        
-        .required { color: #ff4757; }
-        small { display: block; margin-top: 5px; font-size: 12px; color: #666; }
         
         @media (max-width: 768px) {
             .header { flex-direction: column; gap: 10px; text-align: center; }
@@ -173,11 +144,6 @@
 
 <div class="container">
     <div id="alert" class="alert"></div>
-
-    <!-- Botón para agregar foro -->
-    <div class="top-actions">
-        <button class="btn-add" onclick="openCreateModal()">➕ Agregar Nuevo Foro</button>
-    </div>
 
     <!-- Filtros de Búsqueda -->
     <div class="filters-container">
@@ -244,21 +210,21 @@
                     data-titulo="<%= foro.info_titulo %>" 
                     data-fecha="<%= foro.info_fec_publicacion %>"
                     data-departamento="<%= foro.info_dep_desc || '' %>"
-                    data-cadena="<%= foro.esca_esp_desc || '' %>">
+                    data-cadena="<%= foro.espcad_esp_desc || '' %>">
                     <td><%= foro.info_foro_id %></td>
                     <td><%= foro.info_titulo %></td>
                     <td><%= foro.info_autor %></td>
                     <td><%= foro.info_fec_publicacion ? new Date(foro.info_fec_publicacion).toLocaleDateString() : 'N/A' %></td>
                     <td><%= foro.info_num_respuestas %></td>
                     <td><%= foro.info_dep_desc || 'N/A' %></td>
-                    <td><%= foro.esca_esp_desc || 'N/A' %></td>
+                    <td><%= foro.espcad_esp_desc || 'N/A' %></td>
                     <td>
                         <button class="btn-edit" 
                                 data-foro-id="<%= foro.info_foro_id %>"
                                 data-dep-id="<%= foro.info_dep_id || '' %>"
                                 data-dep-desc="<%= foro.info_dep_desc || '' %>"
-                                data-esca-id="<%= foro.esca_id || '' %>"
-                                data-esca-desc="<%= foro.esca_esp_desc || '' %>"
+                                data-espcad-id="<%= foro.espcad_id || '' %>"
+                                data-cadena-desc="<%= foro.espcad_esp_desc || '' %>"
                                 onclick="openModalFromButton(this)">
                             ✏️ Editar
                         </button>
@@ -273,69 +239,6 @@
     </div>
 </div>
 
-<!-- Modal Crear Foro -->
-<div id="createModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeCreateModal()">&times;</span>
-        <h2 style="margin-bottom:20px;">Agregar Nuevo Foro</h2>
-
-        <form id="createForm">
-            <div class="form-group">
-                <label>Foro ID <span class="required">*</span></label>
-                <input type="text" id="createForoId" placeholder="Ej: FORO123" required>
-                <small>ID único del foro (requerido)</small>
-            </div>
-
-            <div class="form-group">
-                <label>Título <span class="required">*</span></label>
-                <input type="text" id="createTitulo" placeholder="Título del foro" required>
-            </div>
-
-            <div class="form-group">
-                <label>Descripción <span class="required">*</span></label>
-                <textarea id="createDescripcion" placeholder="Descripción del foro" required></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Autor <span class="required">*</span></label>
-                <input type="text" id="createAutor" placeholder="Nombre del autor" required>
-            </div>
-
-            <div class="form-group">
-                <label>Fecha de Publicación <span class="required">*</span></label>
-                <input type="datetime-local" id="createFechaPublicacion" required>
-            </div>
-
-            <div class="form-group">
-                <label>URL del Foro</label>
-                <input type="text" id="createUrl" placeholder="https://...">
-            </div>
-
-            <div class="form-group">
-                <label>Departamento:</label>
-                <div class="field-type-toggle">
-                    <button type="button" class="type-btn active" onclick="setCreateDepartamentoType('departamento')">Departamento</button>
-                </div>
-                <select id="createDepartamento" style="display: block;">
-                    <option value="">Seleccione un departamento...</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Cadena:</label>
-                <div class="field-type-toggle">
-                    <button type="button" class="type-btn active" onclick="setCreateCadenaType('cadena')">Cadena</button>
-                </div>
-                <select id="createCadena" style="display: block;">
-                    <option value="">Seleccione una cadena...</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn-save">💾 Crear Foro</button>
-        </form>
-    </div>
-</div>
-
 <!-- Modal Editar Foro -->
 <div id="editModal" class="modal">
     <div class="modal-content">
@@ -344,6 +247,8 @@
 
         <form id="editForm">
             <input type="hidden" id="foroId">
+            <input type="hidden" id="currentDeptoId">
+            <input type="hidden" id="currentEspcadId">
 
             <div class="form-group">
                 <label>Departamento:</label>
@@ -374,8 +279,6 @@
 let allRows = [];
 let currentDepartamentoType = 'departamento';
 let currentCadenaType = 'cadena';
-let createDepartamentoType = 'departamento';
-let createCadenaType = 'cadena';
 
 // Inicializar filtros
 document.addEventListener('DOMContentLoaded', function() {
@@ -486,170 +389,31 @@ function showAlert(message, type) {
     }, 4000);
 }
 
-// ============ FUNCIONES MODAL CREAR ============
-
-async function openCreateModal() {
-    document.getElementById("createModal").style.display = "block";
-    await Promise.all([loadCreateDepartamentos(), loadCreateCadenas()]);
-    
-    // Resetear formulario
-    document.getElementById('createForm').reset();
-    setCreateDepartamentoType('departamento');
-    setCreateCadenaType('cadena');
-}
-
-function closeCreateModal() {
-    document.getElementById("createModal").style.display = "none";
-}
-
-function setCreateDepartamentoType(type) {
-    createDepartamentoType = type;
-    const deptoSelect = document.getElementById('createDepartamento');
-    const buttons = document.querySelectorAll('#createModal .form-group:nth-of-type(7) .type-btn');
-    
-    buttons.forEach(btn => btn.classList.remove('active'));
-    
-    if (type === 'departamento') {
-        deptoSelect.style.display = 'block';
-        buttons[0].classList.add('active');
-    }
-}
-
-function setCreateCadenaType(type) {
-    createCadenaType = type;
-    const cadenaSelect = document.getElementById('createCadena');
-    const buttons = document.querySelectorAll('#createModal .form-group:nth-of-type(8) .type-btn');
-    
-    buttons.forEach(btn => btn.classList.remove('active'));
-    
-    if (type === 'cadena') {
-        cadenaSelect.style.display = 'block';
-        buttons[0].classList.add('active');
-    }
-}
-
-async function loadCreateDepartamentos() {
-    const select = document.getElementById("createDepartamento");
-    select.innerHTML = `<option value="">Cargando departamentos...</option>`;
-
-    try {
-        const res = await fetch("/foros/api/departamentos");
-        if (!res.ok) throw new Error('Error al cargar departamentos');
-        
-        const departamentos = await res.json();
-        
-        select.innerHTML = `<option value="">Seleccione un departamento...</option>`;
-        departamentos.forEach(dep => {
-            const option = document.createElement("option");
-            option.value = dep.dep_id.toString();
-            option.textContent = dep.dep_desc;
-            select.appendChild(option);
-        });
-    } catch (err) {
-        console.error('Error cargando departamentos:', err);
-        select.innerHTML = `<option value="">Error al cargar departamentos</option>`;
-        showAlert("Error al cargar departamentos", "error");
-    }
-}
-
-async function loadCreateCadenas() {
-    const select = document.getElementById("createCadena");
-    select.innerHTML = `<option value="">Cargando cadenas...</option>`;
-
-    try {
-        const res = await fetch("/foros/api/cadenas");
-        if (!res.ok) throw new Error('Error al cargar cadenas');
-        
-        const cadenas = await res.json();
-        
-        select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
-        cadenas.forEach(cad => {
-            const option = document.createElement("option");
-            option.value = cad.espcad_id.toString();
-            option.textContent = cad.espcad_cad_desc;
-            select.appendChild(option);
-        });
-    } catch (err) {
-        console.error('Error cargando cadenas:', err);
-        select.innerHTML = `<option value="">Error al cargar cadenas</option>`;
-        showAlert("Error al cargar cadenas", "error");
-    }
-}
-
-// Form submit para crear foro
-document.getElementById("createForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const foroId = document.getElementById("createForoId").value.trim();
-    const titulo = document.getElementById("createTitulo").value.trim();
-    const descripcion = document.getElementById("createDescripcion").value.trim();
-    const autor = document.getElementById("createAutor").value.trim();
-    const fechaPublicacion = document.getElementById("createFechaPublicacion").value;
-    const url = document.getElementById("createUrl").value.trim();
-    const depId = document.getElementById("createDepartamento").value;
-    const escaId = document.getElementById("createCadena").value;
-
-    if (!foroId || !titulo || !descripcion || !autor || !fechaPublicacion) {
-        showAlert("Por favor complete todos los campos obligatorios", "error");
-        return;
-    }
-
-    try {
-        const res = await fetch(`/foros/api/create`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                info_foro_id: foroId,
-                info_titulo: titulo,
-                info_desc: descripcion,
-                info_autor: autor,
-                info_fec_publicacion: fechaPublicacion,
-                info_url: url,
-                info_dep_id: depId || null,
-                esca_id: escaId || null
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            showAlert("Foro creado exitosamente", "success");
-            closeCreateModal();
-            setTimeout(() => location.reload(), 800);
-        } else {
-            showAlert(data.message || "Error al crear foro", "error");
-        }
-    } catch (err) {
-        console.error('Error al crear:', err);
-        showAlert("Error al crear foro", "error");
-    }
-});
-
-// ============ FUNCIONES MODAL EDITAR ============
-
 function setDepartamentoType(type) {
     currentDepartamentoType = type;
     const deptoSelect = document.getElementById('departamento');
-    const buttons = document.querySelectorAll('#editModal .form-group:nth-of-type(2) .type-btn');
+    const formGroup = deptoSelect.closest('.form-group');
+    const buttons = formGroup.querySelectorAll('.type-btn');
     
     buttons.forEach(btn => btn.classList.remove('active'));
     
     if (type === 'departamento') {
         deptoSelect.style.display = 'block';
-        buttons[0].classList.add('active');
+        if (buttons[0]) buttons[0].classList.add('active');
     }
 }
 
 function setCadenaType(type) {
     currentCadenaType = type;
     const cadenaSelect = document.getElementById('cadena');
-    const buttons = document.querySelectorAll('#editModal .form-group:nth-of-type(3) .type-btn');
+    const formGroup = cadenaSelect.closest('.form-group');
+    const buttons = formGroup.querySelectorAll('.type-btn');
     
     buttons.forEach(btn => btn.classList.remove('active'));
     
     if (type === 'cadena') {
         cadenaSelect.style.display = 'block';
-        buttons[0].classList.add('active');
+        if (buttons[0]) buttons[0].classList.add('active');
     }
 }
 
@@ -690,7 +454,9 @@ async function loadCadenas() {
         select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
         cadenas.forEach(cad => {
             const option = document.createElement("option");
+            // El value es espcad_id (que se guardará en columna espcad_id)
             option.value = cad.espcad_id.toString();
+            // El texto mostrado es espcad_cad_desc (que se guardará en columna espcad_esp_desc)
             option.textContent = cad.espcad_cad_desc;
             select.appendChild(option);
         });
@@ -705,28 +471,42 @@ async function openModalFromButton(button) {
     const foroId = button.dataset.foroId;
     const depIdActual = button.dataset.depId;
     const depDescActual = button.dataset.depDesc;
-    const escaIdActual = button.dataset.escaId;
-    const escaDescActual = button.dataset.escaDesc;
+    const espcadIdActual = button.dataset.espcadId;
+    const cadenaDescActual = button.dataset.cadenaDesc;
     
     document.getElementById("foroId").value = foroId;
+    document.getElementById("currentDeptoId").value = depIdActual || '';
+    document.getElementById("currentEspcadId").value = espcadIdActual || '';
     document.getElementById("editModal").style.display = "block";
     
-    await Promise.all([loadDepartamentos(), loadCadenas()]);
-    
-    // Setear departamento si existe
-    if (depIdActual) {
-        setDepartamentoType('departamento');
-        setTimeout(() => {
-            document.getElementById("departamento").value = depIdActual.toString();
-        }, 300);
-    }
-    
-    // Setear cadena si existe
-    if (escaIdActual) {
-        setCadenaType('cadena');
-        setTimeout(() => {
-            document.getElementById("cadena").value = escaIdActual.toString();
-        }, 300);
+    try {
+        // Cargar departamentos y cadenas
+        await loadDepartamentos();
+        await loadCadenas();
+        
+        // Esperar un poco para que los selects se llenen
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Setear departamento si existe
+        if (depIdActual && depIdActual !== '' && depIdActual !== 'null') {
+            setDepartamentoType('departamento');
+            const deptoSelect = document.getElementById("departamento");
+            if (deptoSelect) {
+                deptoSelect.value = depIdActual.toString();
+            }
+        }
+        
+        // Setear cadena si existe (usando espcad_id)
+        if (espcadIdActual && espcadIdActual !== '' && espcadIdActual !== 'null') {
+            setCadenaType('cadena');
+            const cadenaSelect = document.getElementById("cadena");
+            if (cadenaSelect) {
+                cadenaSelect.value = espcadIdActual.toString();
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar datos del modal:', error);
+        showAlert("Error al cargar los datos. Verifique la conexión.", "error");
     }
 }
 
@@ -734,26 +514,31 @@ function closeModal() {
     document.getElementById("editModal").style.display = "none";
 }
 
+window.onclick = function (e) {
+    if (e.target === document.getElementById("editModal")) closeModal();
+};
+
 // Form submit para editar foro
 document.getElementById("editForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const foroId = document.getElementById("foroId").value;
-    const depId = document.getElementById("departamento").value;
-    const escaId = document.getElementById("cadena").value;
+    const currentDeptoId = document.getElementById("currentDeptoId").value;
+    const currentEspcadId = document.getElementById("currentEspcadId").value;
+    const deptoId = document.getElementById("departamento").value;
+    const espcadId = document.getElementById("cadena").value;
 
-    if (!depId && !escaId) {
-        showAlert("Por favor seleccione al menos departamento o cadena", "error");
-        return;
-    }
+    // Usar valores actuales si no se seleccionó ninguno nuevo
+    const finalDeptoId = deptoId || currentDeptoId || null;
+    const finalEspcadId = espcadId || currentEspcadId || null;
 
     try {
         const res = await fetch(`/foros/api/${foroId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                info_dep_id: depId || null,
-                esca_id: escaId || null
+                info_dep_id: finalDeptoId,
+                espcad_id: finalEspcadId
             })
         });
 
@@ -767,23 +552,10 @@ document.getElementById("editForm").addEventListener("submit", async function (e
             showAlert(data.message || "Error al actualizar foro", "error");
         }
     } catch (err) {
-        console.error('Error al actualizar:', err);
-        showAlert("Error al actualizar foro", "error");
+        console.error('Error al guardar:', err);
+        showAlert("Error al guardar cambios", "error");
     }
 });
-
-// Cerrar modales al hacer clic fuera de ellos
-window.onclick = function(event) {
-    const createModal = document.getElementById("createModal");
-    const editModal = document.getElementById("editModal");
-    
-    if (event.target == createModal) {
-        closeCreateModal();
-    }
-    if (event.target == editModal) {
-        closeModal();
-    }
-}
 </script>
 
 </body>

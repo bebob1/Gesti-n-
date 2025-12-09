@@ -59,11 +59,12 @@ const VideosModel = {
     },
 
     /**
-     * Obtener todas las cadenas/especies ordenadas alfabéticamente
+     * Obtener todas las cadenas ordenadas alfabéticamente
+     * Retorna espcad_id y espcad_cad_desc
      */
     async getAllCadenas() {
         const query = `
-            SELECT DISTINCT espcad_cad_id, espcad_cad_desc
+            SELECT DISTINCT espcad_id, espcad_cad_desc
             FROM intb_especie_cadena
             WHERE espcad_cad_desc IS NOT NULL
             ORDER BY espcad_cad_desc ASC
@@ -73,42 +74,48 @@ const VideosModel = {
     },
 
     /**
-     * Obtener una cadena por ID
+     * Obtener una cadena por espcad_id
+     * Retorna la descripción de la cadena que se guardará en esca_esp_desc
      */
-    async getCadenaById(cadId) {
+    async getCadenaById(espcadId) {
         const query = `
             SELECT espcad_cad_desc
             FROM intb_especie_cadena
-            WHERE espcad_cad_id = $1
+            WHERE espcad_id = $1
             LIMIT 1
         `;
-        const result = await pool.query(query, [cadId]);
+        const result = await pool.query(query, [espcadId]);
         return result.rows[0];
     },
 
     /**
-     * Actualizar fuente origen y categoría de un video
+     * Actualizar fuente origen y cadena (especie) de un video
+     * Nota: Se muestra "cadena" al usuario pero se guarda en columnas de "especie"
+     * - espcad_id -> columna espcad_id
+     * - espcad_cad_desc (cadena) -> columna esca_esp_desc
      */
-    async updateVideoCategoria(videoId, fuenteOrigen, categoria) {
+    async updateVideoFuenteCadena(videoId, fuenteOrigen, espcadId, escaEspDesc) {
         const query = `
             UPDATE intb_integracion_videos
             SET 
                 invid_fuente_origen = $1,
-                invid_categoria = $2
-            WHERE invid_id = $3
+                espcad_id = $2,
+                esca_esp_desc = $3
+            WHERE invid_id = $4
         `;
-        const result = await pool.query(query, [fuenteOrigen, categoria, videoId]);
+        const result = await pool.query(query, [fuenteOrigen, espcadId, escaEspDesc, videoId]);
         return result.rowCount > 0;
     },
 
     /**
-     * Crear un nuevo video (ejemplo para futuras expansiones)
+     * Crear un nuevo video
      */
     async createVideo(videoData) {
         const query = `
             INSERT INTO intb_integracion_videos 
-            (invid_video_id, invid_titulo, invid_published_at, invid_url, invid_fuente_origen, invid_categoria)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            (invid_video_id, invid_titulo, invid_published_at, invid_url, 
+             invid_fuente_origen, espcad_id, esca_esp_desc)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
         `;
         const values = [
@@ -117,14 +124,15 @@ const VideosModel = {
             videoData.publishedAt,
             videoData.url,
             videoData.fuenteOrigen,
-            videoData.categoria
+            videoData.espcadId,
+            videoData.escaEspDesc
         ];
         const result = await pool.query(query, values);
         return result.rows[0];
     },
 
     /**
-     * Eliminar un video por ID (ejemplo para futuras expansiones)
+     * Eliminar un video por ID
      */
     async deleteVideo(videoId) {
         const query = `

@@ -8,15 +8,54 @@ router.use(basicAuth);
 
 /**
  * GET /foros
- * Renderiza la página principal de gestión de foros
+ * Renderiza la página principal de gestión de foros (sin datos, se cargan por API)
  */
 router.get('/', async (req, res) => {
     try {
-        const foros = await ForosModel.getAllForos();
-        res.render('foros', { foros });
+        res.render('foros', { foros: [] });
     } catch (err) {
         console.error('ERROR al cargar foros:', err);
         res.status(500).send('Error al cargar foros');
+    }
+});
+
+/**
+ * GET /foros/api/foros
+ * Obtiene foros paginados con filtros aplicados en BD
+ */
+router.get('/api/foros', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+
+        // Filtros
+        const filters = {
+            searchText: req.query.searchText || '',
+            filterID: req.query.filterID || '',
+            filterFechaDesde: req.query.filterFechaDesde || '',
+            filterFechaHasta: req.query.filterFechaHasta || '',
+            filterDepartamento: req.query.filterDepartamento || '',
+            filterCadena: req.query.filterCadena || ''
+        };
+
+        // Obtener foros paginados y total
+        const result = await ForosModel.getForosPaginated(limit, offset, filters);
+
+        res.json({
+            success: true,
+            foros: result.foros,
+            totalCount: result.totalCount,
+            currentPage: page,
+            totalPages: Math.ceil(result.totalCount / limit),
+            limit: limit
+        });
+    } catch (err) {
+        console.error('ERROR al cargar foros paginados:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error al cargar foros' 
+        });
     }
 });
 
@@ -49,6 +88,20 @@ router.get('/api/cadenas', async (req, res) => {
 });
 
 /**
+ * GET /foros/api/filter-options
+ * Obtiene las opciones únicas de departamentos y cadenas para los filtros
+ */
+router.get('/api/filter-options', async (req, res) => {
+    try {
+        const options = await ForosModel.getFilterOptions();
+        res.json(options);
+    } catch (err) {
+        console.error('ERROR al cargar opciones de filtros:', err);
+        res.status(500).json({ error: true, message: 'Error al cargar opciones' });
+    }
+});
+
+/**
  * POST /foros/api/:id
  * Actualiza el departamento y/o cadena de un foro
  */
@@ -57,67 +110,56 @@ router.post('/api/:id', async (req, res) => {
     const { info_dep_id, espcad_id } = req.body;
 
     try {
-        console.log('=== INICIO UPDATE FORO ===');
-        console.log('Foro ID:', id);
-        console.log('Body recibido:', req.body);
-        console.log('info_dep_id:', info_dep_id);
-        console.log('espcad_id:', espcad_id);
+        // Obtener el foro actual para mantener valores existentes
+        const foroActual = await ForosModel.getForoById(id);
+        
+        if (!foroActual) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Foro no encontrado' 
+            });
+        }
 
-        // Obtener descripciones si se proporcionan IDs
-        let depDesc = null;
-        let espcadEspDesc = null;
+        // Usar valores actuales si no se envían nuevos
+        let depIdFinal = info_dep_id || foroActual.info_dep_id;
+        let depDescFinal = foroActual.info_dep_desc;
+        let espcadIdFinal = espcad_id || foroActual.espcad_id;
+        let espcadEspDescFinal = foroActual.espcad_esp_desc;
 
-        // Si departamento es un ID válido, obtener descripción
-        if (info_dep_id && info_dep_id !== '' && info_dep_id !== 'null') {
-            console.log('Buscando departamento con ID:', info_dep_id);
+        // Si se envió un nuevo departamento, obtener su descripción
+        if (info_dep_id && !isNaN(info_dep_id)) {
             const departamento = await ForosModel.getDepartamentoById(info_dep_id);
-            console.log('Departamento encontrado:', departamento);
             if (departamento) {
-                depDesc = departamento.dep_desc;
+                depDescFinal = departamento.dep_desc;
             }
         }
 
-        // Si cadena es un ID válido (espcad_id), obtener descripción
-        if (espcad_id && espcad_id !== '' && espcad_id !== 'null') {
-            console.log('Buscando cadena con espcad_id:', espcad_id);
+        // Si se envió un nuevo espcad_id, obtener la descripción de la especie
+        if (espcad_id && !isNaN(espcad_id)) {
             const cadena = await ForosModel.getCadenaById(espcad_id);
-            console.log('Cadena encontrada:', cadena);
             if (cadena) {
-                espcadEspDesc = cadena.espcad_esp_desc;
+                espcadEspDescFinal = cadena.espcad_esp_desc;
             }
         }
 
-        console.log('Valores finales para update:');
-        console.log('- info_dep_id:', info_dep_id);
-        console.log('- depDesc:', depDesc);
-        console.log('- espcad_id:', espcad_id);
-        console.log('- espcadEspDesc:', espcadEspDesc);
-
-        // Actualizar el foro
+        // Actualizar el foro con los valores finales
         const updated = await ForosModel.updateForoUbicacionCadena(
             id,
-            info_dep_id || null,
-            depDesc,
-            espcad_id || null,
-            espcadEspDesc
+            depIdFinal,
+            depDescFinal,
+            espcadIdFinal,
+            espcadEspDescFinal
         );
-
-        console.log('Resultado del update:', updated);
-        console.log('=== FIN UPDATE FORO ===');
 
         if (updated) {
             res.json({ success: true, message: 'Foro actualizado correctamente' });
         } else {
-            res.status(404).json({ success: false, message: 'Foro no encontrado' });
+            res.status(500).json({ success: false, message: 'Error al actualizar foro' });
         }
 
     } catch (err) {
-        console.error('ERROR COMPLETO al actualizar foro:', err);
-        console.error('Stack trace:', err.stack);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error al actualizar foro: ' + err.message 
-        });
+        console.error('ERROR al actualizar foro:', err);
+        res.status(500).json({ success: false, message: 'Error al actualizar foro' });
     }
 });
 

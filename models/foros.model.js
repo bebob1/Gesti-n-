@@ -7,6 +7,115 @@ const pool = require('../config/database');
 
 const ForosModel = {
     /**
+     * Obtener foros paginados con filtros aplicados en BD
+     */
+    async getForosPaginated(limit, offset, filters) {
+        let whereConditions = [];
+        let queryParams = [];
+        let paramIndex = 1;
+
+        // Filtro por búsqueda de texto en título
+        if (filters.searchText) {
+            whereConditions.push(`LOWER(info_titulo) LIKE $${paramIndex}`);
+            queryParams.push(`%${filters.searchText.toLowerCase()}%`);
+            paramIndex++;
+        }
+
+        // Filtro por ID
+        if (filters.filterID) {
+            whereConditions.push(`CAST(info_foro_id AS TEXT) LIKE $${paramIndex}`);
+            queryParams.push(`%${filters.filterID}%`);
+            paramIndex++;
+        }
+
+        // Filtro por fecha desde
+        if (filters.filterFechaDesde) {
+            whereConditions.push(`info_fec_publicacion >= $${paramIndex}`);
+            queryParams.push(filters.filterFechaDesde);
+            paramIndex++;
+        }
+
+        // Filtro por fecha hasta
+        if (filters.filterFechaHasta) {
+            whereConditions.push(`info_fec_publicacion <= $${paramIndex}`);
+            queryParams.push(filters.filterFechaHasta);
+            paramIndex++;
+        }
+
+        // Filtro por departamento
+        if (filters.filterDepartamento) {
+            whereConditions.push(`info_dep_desc = $${paramIndex}`);
+            queryParams.push(filters.filterDepartamento);
+            paramIndex++;
+        }
+
+        // Filtro por cadena
+        if (filters.filterCadena) {
+            whereConditions.push(`espcad_esp_desc = $${paramIndex}`);
+            queryParams.push(filters.filterCadena);
+            paramIndex++;
+        }
+
+        const whereClause = whereConditions.length > 0 
+            ? `WHERE ${whereConditions.join(' AND ')}`
+            : '';
+
+        // Query para contar total de registros con filtros
+        const countQuery = `
+            SELECT COUNT(*) as total
+            FROM intb_integracion_foros
+            ${whereClause}
+        `;
+
+        // Query para obtener registros paginados
+        const dataQuery = `
+            SELECT *
+            FROM intb_integracion_foros
+            ${whereClause}
+            ORDER BY info_foro_id DESC
+            LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+        `;
+
+        // Ejecutar ambas queries
+        const countResult = await pool.query(countQuery, queryParams);
+        const dataResult = await pool.query(dataQuery, [...queryParams, limit, offset]);
+
+        return {
+            foros: dataResult.rows,
+            totalCount: parseInt(countResult.rows[0].total)
+        };
+    },
+
+    /**
+     * Obtener opciones únicas para los filtros
+     */
+    async getFilterOptions() {
+        const deptoQuery = `
+            SELECT DISTINCT info_dep_desc
+            FROM intb_integracion_foros
+            WHERE info_dep_desc IS NOT NULL
+            ORDER BY info_dep_desc ASC
+        `;
+
+        const cadenaQuery = `
+            SELECT DISTINCT espcad_esp_desc
+            FROM intb_integracion_foros
+            WHERE espcad_esp_desc IS NOT NULL
+            ORDER BY espcad_esp_desc ASC
+        `;
+
+        const [deptoResult, cadenaResult] = await Promise.all([
+            pool.query(deptoQuery),
+            pool.query(cadenaQuery)
+        ]);
+
+        return {
+            departamentos: deptoResult.rows.map(r => r.info_dep_desc),
+            cadenas: cadenaResult.rows.map(r => r.espcad_esp_desc)
+        };
+    },
+
+    /**
      * Obtener todos los foros ordenados por ID descendente
      */
     async getAllForos() {

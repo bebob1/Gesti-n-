@@ -8,15 +8,54 @@ router.use(basicAuth);
 
 /**
  * GET /videos
- * Renderiza la página principal de gestión de videos
+ * Renderiza la página principal de gestión de videos (sin datos, se cargan por API)
  */
 router.get('/', async (req, res) => {
     try {
-        const videos = await VideosModel.getAllVideos();
-        res.render('videos', { videos });
+        res.render('videos', { videos: [] });
     } catch (err) {
         console.error('ERROR al cargar videos:', err);
         res.status(500).send('Error al cargar videos');
+    }
+});
+
+/**
+ * GET /videos/api/videos
+ * Obtiene videos paginados con filtros aplicados en BD
+ */
+router.get('/api/videos', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+
+        // Filtros
+        const filters = {
+            searchText: req.query.searchText || '',
+            filterID: req.query.filterID || '',
+            filterFechaDesde: req.query.filterFechaDesde || '',
+            filterFechaHasta: req.query.filterFechaHasta || '',
+            filterDepartamento: req.query.filterDepartamento || '',
+            filterCadena: req.query.filterCadena || ''
+        };
+
+        // Obtener videos paginados y total
+        const result = await VideosModel.getVideosPaginated(limit, offset, filters);
+
+        res.json({
+            success: true,
+            videos: result.videos,
+            totalCount: result.totalCount,
+            currentPage: page,
+            totalPages: Math.ceil(result.totalCount / limit),
+            limit: limit
+        });
+    } catch (err) {
+        console.error('ERROR al cargar videos paginados:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error al cargar videos' 
+        });
     }
 });
 
@@ -49,6 +88,20 @@ router.get('/api/cadenas', async (req, res) => {
 });
 
 /**
+ * GET /videos/api/filter-options
+ * Obtiene las opciones únicas de departamentos y cadenas para los filtros
+ */
+router.get('/api/filter-options', async (req, res) => {
+    try {
+        const options = await VideosModel.getFilterOptions();
+        res.json(options);
+    } catch (err) {
+        console.error('ERROR al cargar opciones de filtros:', err);
+        res.status(500).json({ error: true, message: 'Error al cargar opciones' });
+    }
+});
+
+/**
  * POST /videos/api/create
  * Crea un nuevo video
  */
@@ -58,7 +111,7 @@ router.post('/api/create', async (req, res) => {
         invid_titulo, 
         invid_published_at, 
         invid_url, 
-        invid_fuente_origen, 
+        dep_id,
         espcad_id 
     } = req.body;
 
@@ -72,22 +125,22 @@ router.post('/api/create', async (req, res) => {
         }
 
         // Obtener descripciones si se proporcionan IDs
-        let fuenteOrigenDesc = invid_fuente_origen;
-        let escaEspDesc = null;
+        let depDesc = null;
+        let espcadEspDesc = null;
 
-        // Si fuente origen es un ID de departamento, obtener descripción
-        if (invid_fuente_origen && !isNaN(invid_fuente_origen)) {
-            const departamento = await VideosModel.getDepartamentoById(invid_fuente_origen);
+        // Si se proporciona dep_id, obtener descripción
+        if (dep_id && !isNaN(dep_id)) {
+            const departamento = await VideosModel.getDepartamentoById(dep_id);
             if (departamento) {
-                fuenteOrigenDesc = departamento.dep_desc;
+                depDesc = departamento.dep_desc;
             }
         }
 
-        // Si espcad_id es un ID, obtener la descripción de la CADENA
+        // Si se proporciona espcad_id, obtener la descripción de la especie
         if (espcad_id && !isNaN(espcad_id)) {
             const cadena = await VideosModel.getCadenaById(espcad_id);
             if (cadena) {
-                escaEspDesc = cadena.espcad_cad_desc;
+                espcadEspDesc = cadena.espcad_esp_desc;
             }
         }
 
@@ -97,9 +150,10 @@ router.post('/api/create', async (req, res) => {
             titulo: invid_titulo,
             publishedAt: invid_published_at,
             url: invid_url,
-            fuenteOrigen: fuenteOrigenDesc || null,
+            depId: dep_id || null,
+            depDesc: depDesc,
             espcadId: espcad_id || null,
-            escaEspDesc: escaEspDesc
+            espcadEspDesc: espcadEspDesc
         };
 
         const newVideo = await VideosModel.createVideo(videoData);
@@ -137,11 +191,11 @@ router.post('/api/create', async (req, res) => {
 
 /**
  * POST /videos/api/:id
- * Actualiza la fuente origen y cadena (especie) de un video
+ * Actualiza el departamento y/o cadena de un video
  */
 router.post('/api/:id', async (req, res) => {
     const { id } = req.params;
-    const { invid_fuente_origen, espcad_id } = req.body;
+    const { dep_id, espcad_id } = req.body;
 
     try {
         // Obtener el video actual para mantener valores existentes
@@ -155,32 +209,34 @@ router.post('/api/:id', async (req, res) => {
         }
 
         // Usar valores actuales si no se envían nuevos
-        let fuenteOrigenFinal = invid_fuente_origen || videoActual.invid_fuente_origen;
+        let depIdFinal = dep_id || videoActual.dep_id;
+        let depDescFinal = videoActual.dep_desc;
         let espcadIdFinal = espcad_id || videoActual.espcad_id;
-        let escaEspDescFinal = videoActual.esca_esp_desc;
+        let espcadEspDescFinal = videoActual.espcad_esp_desc;
 
-        // Si se envió una nueva fuente origen que es ID, obtener descripción
-        if (invid_fuente_origen && !isNaN(invid_fuente_origen)) {
-            const departamento = await VideosModel.getDepartamentoById(invid_fuente_origen);
+        // Si se envió un nuevo departamento, obtener su descripción
+        if (dep_id && !isNaN(dep_id)) {
+            const departamento = await VideosModel.getDepartamentoById(dep_id);
             if (departamento) {
-                fuenteOrigenFinal = departamento.dep_desc;
+                depDescFinal = departamento.dep_desc;
             }
         }
 
-        // Si se envió un nuevo espcad_id, obtener la descripción de la CADENA
+        // Si se envió un nuevo espcad_id, obtener la descripción de la especie
         if (espcad_id && !isNaN(espcad_id)) {
             const cadena = await VideosModel.getCadenaById(espcad_id);
             if (cadena) {
-                escaEspDescFinal = cadena.espcad_cad_desc;
+                espcadEspDescFinal = cadena.espcad_esp_desc;
             }
         }
 
         // Actualizar el video con los valores finales
-        const updated = await VideosModel.updateVideoFuenteCadena(
+        const updated = await VideosModel.updateVideoDepartamentoCadena(
             id,
-            fuenteOrigenFinal,
+            depIdFinal,
+            depDescFinal,
             espcadIdFinal,
-            escaEspDescFinal
+            espcadEspDescFinal
         );
 
         if (updated) {

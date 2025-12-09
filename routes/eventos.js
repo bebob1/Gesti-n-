@@ -8,15 +8,54 @@ router.use(basicAuth);
 
 /**
  * GET /eventos
- * Renderiza la página principal de gestión de eventos
+ * Renderiza la página principal de gestión de eventos (sin datos, se cargan por API)
  */
 router.get('/', async (req, res) => {
     try {
-        const eventos = await EventosModel.getAllEventos();
-        res.render('eventos', { eventos });
+        res.render('eventos', { eventos: [] });
     } catch (err) {
         console.error('ERROR al cargar eventos:', err);
         res.status(500).send('Error al cargar eventos');
+    }
+});
+
+/**
+ * GET /eventos/api/eventos
+ * Obtiene eventos paginados con filtros aplicados en BD
+ */
+router.get('/api/eventos', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+
+        // Filtros
+        const filters = {
+            searchText: req.query.searchText || '',
+            filterID: req.query.filterID || '',
+            filterFechaDesde: req.query.filterFechaDesde || '',
+            filterFechaHasta: req.query.filterFechaHasta || '',
+            filterDepartamento: req.query.filterDepartamento || '',
+            filterCadena: req.query.filterCadena || ''
+        };
+
+        // Obtener eventos paginados y total
+        const result = await EventosModel.getEventosPaginated(limit, offset, filters);
+
+        res.json({
+            success: true,
+            eventos: result.eventos,
+            totalCount: result.totalCount,
+            currentPage: page,
+            totalPages: Math.ceil(result.totalCount / limit),
+            limit: limit
+        });
+    } catch (err) {
+        console.error('ERROR al cargar eventos paginados:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error al cargar eventos' 
+        });
     }
 });
 
@@ -37,7 +76,6 @@ router.get('/api/departamentos', async (req, res) => {
 /**
  * GET /eventos/api/cadenas
  * Devuelve todas las cadenas en formato JSON
- * (Se muestran cadenas pero se guardarán en columnas de especie)
  */
 router.get('/api/cadenas', async (req, res) => {
     try {
@@ -46,6 +84,20 @@ router.get('/api/cadenas', async (req, res) => {
     } catch (err) {
         console.error('ERROR al cargar cadenas:', err);
         res.status(500).json({ error: true, message: 'Error al cargar cadenas' });
+    }
+});
+
+/**
+ * GET /eventos/api/filter-options
+ * Obtiene las opciones únicas de departamentos y cadenas para los filtros
+ */
+router.get('/api/filter-options', async (req, res) => {
+    try {
+        const options = await EventosModel.getFilterOptions();
+        res.json(options);
+    } catch (err) {
+        console.error('ERROR al cargar opciones de filtros:', err);
+        res.status(500).json({ error: true, message: 'Error al cargar opciones' });
     }
 });
 
@@ -86,7 +138,6 @@ router.post('/api/:id', async (req, res) => {
         if (espcad_id && !isNaN(espcad_id)) {
             const cadena = await EventosModel.getCadenaById(espcad_id);
             if (cadena) {
-                // Guardamos la CADENA (espcad_cad_desc) en la columna de especie (esca_esp_desc)
                 escaEspDescFinal = cadena.espcad_cad_desc;
             }
         }

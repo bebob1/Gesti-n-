@@ -95,6 +95,91 @@
         
         .results-info { text-align: center; color: #666; font-size: 14px; margin-bottom: 15px; }
         
+        /* Paginación */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+            margin: 0 10px;
+        }
+        
+        .pagination-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 40px;
+        }
+        
+        .page-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            font-weight: bold;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-limit {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .page-limit select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { background: #4CAF50; color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }
@@ -125,6 +210,7 @@
         @media (max-width: 768px) {
             .header { flex-direction: column; gap: 10px; text-align: center; }
             .header-left { flex-direction: column; gap: 10px; }
+            .pagination-container { flex-direction: column; }
         }
     </style>
 </head>
@@ -184,11 +270,16 @@
     </div>
 
     <div class="results-info">
-        Mostrando <strong id="resultCount"><%= eventos.length %></strong> de <strong id="totalCount"><%= eventos.length %></strong> eventos
+        Mostrando <strong id="resultCount">0</strong> de <strong id="totalCount">0</strong> eventos
     </div>
 
+    <!-- Paginación Superior -->
+    <div class="pagination-container" id="paginationTop"></div>
+
     <div class="table-wrapper">
-        <table>
+        <div id="loadingIndicator" class="loading">Cargando eventos</div>
+        
+        <table id="eventosTable" style="display: none;">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -200,43 +291,20 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="eventosTable">
-                <% eventos.forEach(evento => { %>
-                <tr data-id="<%= evento.event_id %>"
-                    data-nombre="<%= evento.event_nombre %>" 
-                    data-departamento="<%= evento.event_depto_desc || '' %>" 
-                    data-municipio="<%= evento.event_munic_desc %>" 
-                    data-fecha="<%= evento.event_fec_inicio %>"
-                    data-cadena="<%= evento.esca_esp_desc || '' %>">
-                    <td><%= evento.event_id %></td>
-                    <td><%= evento.event_nombre %></td>
-                    <td><%= evento.event_depto_desc || 'N/A' %></td>
-                    <td><%= evento.event_munic_desc %></td>
-                    <td><%= new Date(evento.event_fec_inicio).toLocaleDateString() %></td>
-                    <td><%= evento.esca_esp_desc || 'N/A' %></td>
-                    <td>
-                        <button class="btn-edit" 
-                                data-event-id="<%= evento.event_id %>"
-                                data-dep-id="<%= evento.event_depto_id || '' %>"
-                                data-dep-desc="<%= evento.event_depto_desc || '' %>"
-                                data-espcad-id="<%= evento.espcad_id || '' %>"
-                                data-cadena-desc="<%= evento.esca_esp_desc || '' %>"
-                                onclick="openModalFromButton(this)">
-                            ✏️ Editar
-                        </button>
-                    </td>
-                </tr>
-                <% }); %>
+            <tbody id="eventosTableBody">
             </tbody>
         </table>
+        
         <div id="noResults" class="no-results" style="display: none;">
             No se encontraron eventos que coincidan con tu búsqueda
         </div>
     </div>
+
+    <!-- Paginación Inferior -->
+    <div class="pagination-container" id="paginationBottom"></div>
 </div>
 
-
-<!-- Modal -->
+<!-- Modal Editar Evento -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
@@ -273,102 +341,260 @@
 </div>
 
 <script>
-let allRows = [];
+let currentPage = 1;
+let currentLimit = 20;
+let totalPages = 1;
+let totalCount = 0;
+let isLoading = false;
 let currentDepartamentoType = 'departamento';
 let currentCadenaType = 'cadena';
 
-// Inicializar filtros
+// Debounce para búsqueda
+let searchTimeout;
+
+// Inicialización
 document.addEventListener('DOMContentLoaded', function() {
-    allRows = Array.from(document.querySelectorAll('#eventosTable tr'));
-    populateFilters();
+    // Cargar opciones de filtros
+    loadFilterOptions();
     
-    // Event listeners para filtros
-    document.getElementById('searchInput').addEventListener('input', applyFilters);
-    document.getElementById('filterID').addEventListener('input', applyFilters);
-    document.getElementById('filterFechaDesde').addEventListener('change', applyFilters);
-    document.getElementById('filterFechaHasta').addEventListener('change', applyFilters);
-    document.getElementById('filterDepartamento').addEventListener('change', applyFilters);
-    document.getElementById('filterCadena').addEventListener('change', applyFilters);
+    // Cargar eventos iniciales
+    loadEventos();
+    
+    // Event listeners para filtros con debounce
+    document.getElementById('searchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 1;
+            loadEventos();
+        }, 500);
+    });
+    
+    document.getElementById('filterID').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 1;
+            loadEventos();
+        }, 500);
+    });
+    
+    document.getElementById('filterFechaDesde').addEventListener('change', () => {
+        currentPage = 1;
+        loadEventos();
+    });
+    
+    document.getElementById('filterFechaHasta').addEventListener('change', () => {
+        currentPage = 1;
+        loadEventos();
+    });
+    
+    document.getElementById('filterDepartamento').addEventListener('change', () => {
+        currentPage = 1;
+        loadEventos();
+    });
+    
+    document.getElementById('filterCadena').addEventListener('change', () => {
+        currentPage = 1;
+        loadEventos();
+    });
 });
 
-function populateFilters() {
-    const departamentos = new Set();
-    const cadenas = new Set();
+async function loadFilterOptions() {
+    try {
+        const res = await fetch('/eventos/api/filter-options');
+        const options = await res.json();
+        
+        // Poblar departamentos
+        const deptoSelect = document.getElementById('filterDepartamento');
+        options.departamentos.forEach(depto => {
+            const option = document.createElement('option');
+            option.value = depto;
+            option.textContent = depto;
+            deptoSelect.appendChild(option);
+        });
+        
+        // Poblar cadenas
+        const cadenaSelect = document.getElementById('filterCadena');
+        options.cadenas.forEach(cadena => {
+            const option = document.createElement('option');
+            option.value = cadena;
+            option.textContent = cadena;
+            cadenaSelect.appendChild(option);
+        });
+    } catch (err) {
+        console.error('Error cargando opciones de filtros:', err);
+    }
+}
+
+async function loadEventos() {
+    if (isLoading) return;
     
-    allRows.forEach(row => {
-        if (row.dataset.departamento) departamentos.add(row.dataset.departamento);
-        if (row.dataset.cadena) cadenas.add(row.dataset.cadena);
-    });
+    isLoading = true;
+    showLoading();
     
-    // Poblar select de departamentos
-    const deptoSelect = document.getElementById('filterDepartamento');
-    Array.from(departamentos).sort().forEach(depto => {
-        const option = document.createElement('option');
-        option.value = depto;
-        option.textContent = depto;
-        deptoSelect.appendChild(option);
-    });
+    try {
+        // Construir query string con filtros
+        const params = new URLSearchParams({
+            page: currentPage,
+            limit: currentLimit,
+            searchText: document.getElementById('searchInput').value,
+            filterID: document.getElementById('filterID').value,
+            filterFechaDesde: document.getElementById('filterFechaDesde').value,
+            filterFechaHasta: document.getElementById('filterFechaHasta').value,
+            filterDepartamento: document.getElementById('filterDepartamento').value,
+            filterCadena: document.getElementById('filterCadena').value
+        });
+        
+        const res = await fetch(`/eventos/api/eventos?${params}`);
+        const data = await res.json();
+        
+        if (data.success) {
+            totalPages = data.totalPages;
+            totalCount = data.totalCount;
+            renderEventos(data.eventos);
+            renderPagination();
+            updateResultsInfo(data.eventos.length, totalCount);
+        } else {
+            showAlert('Error al cargar eventos', 'error');
+        }
+    } catch (err) {
+        console.error('Error:', err);
+        showAlert('Error al cargar eventos', 'error');
+    } finally {
+        isLoading = false;
+        hideLoading();
+    }
+}
+
+function renderEventos(eventos) {
+    const tbody = document.getElementById('eventosTableBody');
+    tbody.innerHTML = '';
     
-    // Poblar select de cadenas
-    const cadenaSelect = document.getElementById('filterCadena');
-    Array.from(cadenas).sort().forEach(cadena => {
-        const option = document.createElement('option');
-        option.value = cadena;
-        option.textContent = cadena;
-        cadenaSelect.appendChild(option);
+    if (eventos.length === 0) {
+        document.getElementById('eventosTable').style.display = 'none';
+        document.getElementById('noResults').style.display = 'block';
+        return;
+    }
+    
+    document.getElementById('eventosTable').style.display = 'table';
+    document.getElementById('noResults').style.display = 'none';
+    
+    eventos.forEach(evento => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${evento.event_id}</td>
+            <td>${evento.event_nombre}</td>
+            <td>${evento.event_depto_desc || 'N/A'}</td>
+            <td>${evento.event_munic_desc}</td>
+            <td>${new Date(evento.event_fec_inicio).toLocaleDateString()}</td>
+            <td>${evento.esca_esp_desc || 'N/A'}</td>
+            <td>
+                <button class="btn-edit" 
+                        data-event-id="${evento.event_id}"
+                        data-dep-id="${evento.event_depto_id || ''}"
+                        data-dep-desc="${evento.event_depto_desc || ''}"
+                        data-espcad-id="${evento.espcad_id || ''}"
+                        data-cadena-desc="${evento.esca_esp_desc || ''}"
+                        onclick="openModalFromButton(this)">
+                    ✏️ Editar
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
     });
 }
 
-function applyFilters() {
-    const searchText = document.getElementById('searchInput').value.toLowerCase();
-    const filterID = document.getElementById('filterID').value.toLowerCase();
-    const filterFechaDesde = document.getElementById('filterFechaDesde').value;
-    const filterFechaHasta = document.getElementById('filterFechaHasta').value;
-    const filterDepto = document.getElementById('filterDepartamento').value;
-    const filterCadena = document.getElementById('filterCadena').value;
+function renderPagination() {
+    const paginationHTML = createPaginationHTML();
+    document.getElementById('paginationTop').innerHTML = paginationHTML;
+    document.getElementById('paginationBottom').innerHTML = paginationHTML;
+}
+
+function createPaginationHTML() {
+    if (totalPages <= 1) return '';
     
-    let visibleCount = 0;
+    let html = '<div class="pagination-buttons">';
     
-    allRows.forEach(row => {
-        const id = row.dataset.id.toLowerCase();
-        const nombre = row.dataset.nombre.toLowerCase();
-        const fecha = row.dataset.fecha;
-        const departamento = row.dataset.departamento;
-        const cadena = row.dataset.cadena;
-        
-        // Convertir fecha a formato comparable
-        const fechaEvento = new Date(fecha);
-        const fechaDesde = filterFechaDesde ? new Date(filterFechaDesde) : null;
-        const fechaHasta = filterFechaHasta ? new Date(filterFechaHasta) : null;
-        
-        const matchSearch = nombre.includes(searchText);
-        const matchID = id.includes(filterID);
-        const matchFechaDesde = !fechaDesde || fechaEvento >= fechaDesde;
-        const matchFechaHasta = !fechaHasta || fechaEvento <= fechaHasta;
-        const matchDepto = !filterDepto || departamento === filterDepto;
-        const matchCadena = !filterCadena || cadena === filterCadena;
-        
-        if (matchSearch && matchID && matchFechaDesde && matchFechaHasta && matchDepto && matchCadena) {
-            row.style.display = '';
-            visibleCount++;
+    // Botón anterior
+    html += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+        ← Anterior
+    </button>`;
+    
+    // Páginas
+    const pagesToShow = getPagesToShow();
+    pagesToShow.forEach(page => {
+        if (page === '...') {
+            html += `<span class="page-btn" disabled>...</span>`;
         } else {
-            row.style.display = 'none';
+            html += `<button class="page-btn ${page === currentPage ? 'active' : ''}" 
+                            onclick="changePage(${page})">
+                ${page}
+            </button>`;
         }
     });
     
-    // Actualizar contador
-    document.getElementById('resultCount').textContent = visibleCount;
+    // Botón siguiente
+    html += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+        Siguiente →
+    </button>`;
     
-    // Mostrar mensaje si no hay resultados
-    const noResults = document.getElementById('noResults');
-    const table = document.querySelector('table');
-    if (visibleCount === 0) {
-        noResults.style.display = 'block';
-        table.style.display = 'none';
+    html += '</div>';
+    
+    // Selector de límite
+    html += `<div class="page-limit">
+        <label>Mostrar:</label>
+        <select onchange="changeLimit(this.value)">
+            <option value="10" ${currentLimit === 10 ? 'selected' : ''}>10</option>
+            <option value="20" ${currentLimit === 20 ? 'selected' : ''}>20</option>
+            <option value="50" ${currentLimit === 50 ? 'selected' : ''}>50</option>
+            <option value="100" ${currentLimit === 100 ? 'selected' : ''}>100</option>
+        </select>
+    </div>`;
+    
+    html += `<div class="pagination-info">Página ${currentPage} de ${totalPages}</div>`;
+    
+    return html;
+}
+
+function getPagesToShow() {
+    const pages = [];
+    const maxVisible = 7;
+    
+    if (totalPages <= maxVisible) {
+        for (let i = 1; i <= totalPages; i++) {
+            pages.push(i);
+        }
     } else {
-        noResults.style.display = 'none';
-        table.style.display = 'table';
+        if (currentPage <= 4) {
+            for (let i = 1; i <= 5; i++) pages.push(i);
+            pages.push('...');
+            pages.push(totalPages);
+        } else if (currentPage >= totalPages - 3) {
+            pages.push(1);
+            pages.push('...');
+            for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            pages.push('...');
+            for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+            pages.push('...');
+            pages.push(totalPages);
+        }
     }
+    
+    return pages;
+}
+
+function changePage(page) {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    currentPage = page;
+    loadEventos();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function changeLimit(newLimit) {
+    currentLimit = parseInt(newLimit);
+    currentPage = 1;
+    loadEventos();
 }
 
 function clearFilters() {
@@ -378,7 +604,33 @@ function clearFilters() {
     document.getElementById('filterFechaHasta').value = '';
     document.getElementById('filterDepartamento').value = '';
     document.getElementById('filterCadena').value = '';
-    applyFilters();
+    currentPage = 1;
+    loadEventos();
+}
+
+function updateResultsInfo(showing, total) {
+    document.getElementById('resultCount').textContent = showing;
+    document.getElementById('totalCount').textContent = total;
+}
+
+function showLoading() {
+    document.getElementById('loadingIndicator').style.display = 'block';
+    document.getElementById('eventosTable').style.display = 'none';
+    document.getElementById('noResults').style.display = 'none';
+}
+
+function hideLoading() {
+    document.getElementById('loadingIndicator').style.display = 'none';
+}
+
+function showAlert(message, type) {
+    const alert = document.getElementById('alert');
+    alert.textContent = message;
+    alert.className = 'alert alert-' + type;
+    alert.style.display = 'block';
+    setTimeout(() => {
+        alert.style.display = 'none';
+    }, 4000);
 }
 
 function setDepartamentoType(type) {
@@ -446,9 +698,7 @@ async function loadCadenas() {
         select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
         cadenas.forEach(cad => {
             const option = document.createElement("option");
-            // El value es espcad_id (que se guardará en columna espcad_id)
             option.value = cad.espcad_id.toString();
-            // El texto mostrado es espcad_cad_desc (que se guardará en columna esca_esp_desc)
             option.textContent = cad.espcad_cad_desc;
             select.appendChild(option);
         });
@@ -472,14 +722,11 @@ async function openModalFromButton(button) {
     document.getElementById("editModal").style.display = "block";
     
     try {
-        // Cargar departamentos y cadenas
         await loadDepartamentos();
         await loadCadenas();
         
-        // Esperar un poco para que los selects se llenen
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Setear departamento si existe
         if (depIdActual && depIdActual !== '' && depIdActual !== 'null') {
             setDepartamentoType('departamento');
             const deptoSelect = document.getElementById("departamento");
@@ -488,7 +735,6 @@ async function openModalFromButton(button) {
             }
         }
         
-        // Setear cadena si existe (usando espcad_id)
         if (espcadIdActual && espcadIdActual !== '' && espcadIdActual !== 'null') {
             setCadenaType('cadena');
             const cadenaSelect = document.getElementById("cadena");
@@ -519,7 +765,6 @@ document.getElementById("editForm").addEventListener("submit", async function (e
     const deptoId = document.getElementById("departamento").value;
     const espcadId = document.getElementById("cadena").value;
 
-    // Usar valores actuales si no se seleccionó ninguno nuevo
     const finalDeptoId = deptoId || currentDeptoId || null;
     const finalEspcadId = espcadId || currentEspcadId || null;
 
@@ -538,7 +783,7 @@ document.getElementById("editForm").addEventListener("submit", async function (e
         if (data.success) {
             showAlert("Evento actualizado exitosamente", "success");
             closeModal();
-            setTimeout(() => location.reload(), 800);
+            setTimeout(() => loadEventos(), 800);
         } else {
             showAlert(data.message || "Error al actualizar evento", "error");
         }
@@ -547,14 +792,6 @@ document.getElementById("editForm").addEventListener("submit", async function (e
         showAlert("Error al guardar cambios", "error");
     }
 });
-
-function showAlert(msg, type) {
-    const alert = document.getElementById("alert");
-    alert.textContent = msg;
-    alert.className = `alert alert-${type}`;
-    alert.style.display = "block";
-    setTimeout(() => alert.style.display = "none", 2500);
-}
 </script>
 
 </body>

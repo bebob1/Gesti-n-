@@ -7,6 +7,115 @@ const pool = require('../config/database');
 
 const EventosModel = {
     /**
+     * Obtener eventos paginados con filtros aplicados en BD
+     */
+    async getEventosPaginated(limit, offset, filters) {
+        let whereConditions = [];
+        let queryParams = [];
+        let paramIndex = 1;
+
+        // Filtro por búsqueda de texto en nombre
+        if (filters.searchText) {
+            whereConditions.push(`LOWER(event_nombre) LIKE $${paramIndex}`);
+            queryParams.push(`%${filters.searchText.toLowerCase()}%`);
+            paramIndex++;
+        }
+
+        // Filtro por ID
+        if (filters.filterID) {
+            whereConditions.push(`CAST(event_id AS TEXT) LIKE $${paramIndex}`);
+            queryParams.push(`%${filters.filterID}%`);
+            paramIndex++;
+        }
+
+        // Filtro por fecha desde
+        if (filters.filterFechaDesde) {
+            whereConditions.push(`event_fec_inicio >= $${paramIndex}`);
+            queryParams.push(filters.filterFechaDesde);
+            paramIndex++;
+        }
+
+        // Filtro por fecha hasta
+        if (filters.filterFechaHasta) {
+            whereConditions.push(`event_fec_inicio <= $${paramIndex}`);
+            queryParams.push(filters.filterFechaHasta);
+            paramIndex++;
+        }
+
+        // Filtro por departamento
+        if (filters.filterDepartamento) {
+            whereConditions.push(`event_depto_desc = $${paramIndex}`);
+            queryParams.push(filters.filterDepartamento);
+            paramIndex++;
+        }
+
+        // Filtro por cadena
+        if (filters.filterCadena) {
+            whereConditions.push(`esca_esp_desc = $${paramIndex}`);
+            queryParams.push(filters.filterCadena);
+            paramIndex++;
+        }
+
+        const whereClause = whereConditions.length > 0 
+            ? `WHERE ${whereConditions.join(' AND ')}`
+            : '';
+
+        // Query para contar total de registros con filtros
+        const countQuery = `
+            SELECT COUNT(*) as total
+            FROM intb_integracion_eventos
+            ${whereClause}
+        `;
+
+        // Query para obtener registros paginados
+        const dataQuery = `
+            SELECT *
+            FROM intb_integracion_eventos
+            ${whereClause}
+            ORDER BY event_id DESC
+            LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+        `;
+
+        // Ejecutar ambas queries
+        const countResult = await pool.query(countQuery, queryParams);
+        const dataResult = await pool.query(dataQuery, [...queryParams, limit, offset]);
+
+        return {
+            eventos: dataResult.rows,
+            totalCount: parseInt(countResult.rows[0].total)
+        };
+    },
+
+    /**
+     * Obtener opciones únicas para los filtros
+     */
+    async getFilterOptions() {
+        const deptoQuery = `
+            SELECT DISTINCT event_depto_desc
+            FROM intb_integracion_eventos
+            WHERE event_depto_desc IS NOT NULL
+            ORDER BY event_depto_desc ASC
+        `;
+
+        const cadenaQuery = `
+            SELECT DISTINCT esca_esp_desc
+            FROM intb_integracion_eventos
+            WHERE esca_esp_desc IS NOT NULL
+            ORDER BY esca_esp_desc ASC
+        `;
+
+        const [deptoResult, cadenaResult] = await Promise.all([
+            pool.query(deptoQuery),
+            pool.query(cadenaQuery)
+        ]);
+
+        return {
+            departamentos: deptoResult.rows.map(r => r.event_depto_desc),
+            cadenas: cadenaResult.rows.map(r => r.esca_esp_desc)
+        };
+    },
+
+    /**
      * Obtener todos los eventos ordenados por ID descendente
      */
     async getAllEventos() {
@@ -117,9 +226,6 @@ const EventosModel = {
 
     /**
      * Actualizar departamento y/o especie de un evento
-     * Nota: Se muestra "cadena" al usuario pero se guarda en columnas de "especie"
-     * - espcad_id -> columna espcad_id
-     * - espcad_cad_desc (cadena) -> columna esca_esp_desc
      */
     async updateEventoDeptoEspecie(eventId, deptoId, deptoDesc, espcadId, escaEspDesc) {
         const query = `

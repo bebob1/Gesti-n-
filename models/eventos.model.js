@@ -42,17 +42,10 @@ const EventosModel = {
             paramIndex++;
         }
 
-        // Filtro por departamento
-        if (filters.filterDepartamento) {
-            whereConditions.push(`event_depto_desc = $${paramIndex}`);
-            queryParams.push(filters.filterDepartamento);
-            paramIndex++;
-        }
-
-        // Filtro por cadena
-        if (filters.filterCadena) {
-            whereConditions.push(`esca_esp_desc = $${paramIndex}`);
-            queryParams.push(filters.filterCadena);
+        // Filtro por estado (nuevo)
+        if (filters.filterEstado !== '') {
+            whereConditions.push(`event_estado = $${paramIndex}`);
+            queryParams.push(parseInt(filters.filterEstado));
             paramIndex++;
         }
 
@@ -83,35 +76,6 @@ const EventosModel = {
         return {
             eventos: dataResult.rows,
             totalCount: parseInt(countResult.rows[0].total)
-        };
-    },
-
-    /**
-     * Obtener opciones únicas para los filtros
-     */
-    async getFilterOptions() {
-        const deptoQuery = `
-            SELECT DISTINCT event_depto_desc
-            FROM intb_integracion_eventos
-            WHERE event_depto_desc IS NOT NULL
-            ORDER BY event_depto_desc ASC
-        `;
-
-        const cadenaQuery = `
-            SELECT DISTINCT esca_esp_desc
-            FROM intb_integracion_eventos
-            WHERE esca_esp_desc IS NOT NULL
-            ORDER BY esca_esp_desc ASC
-        `;
-
-        const [deptoResult, cadenaResult] = await Promise.all([
-            pool.query(deptoQuery),
-            pool.query(cadenaQuery)
-        ]);
-
-        return {
-            departamentos: deptoResult.rows.map(r => r.event_depto_desc),
-            cadenas: cadenaResult.rows.map(r => r.esca_esp_desc)
         };
     },
 

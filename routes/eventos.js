@@ -35,8 +35,7 @@ router.get('/api/eventos', async (req, res) => {
             filterID: req.query.filterID || '',
             filterFechaDesde: req.query.filterFechaDesde || '',
             filterFechaHasta: req.query.filterFechaHasta || '',
-            filterDepartamento: req.query.filterDepartamento || '',
-            filterCadena: req.query.filterCadena || ''
+            filterEstado: req.query.filterEstado || '' // Nuevo filtro por estado
         };
 
         // Obtener eventos paginados y total
@@ -84,20 +83,6 @@ router.get('/api/cadenas', async (req, res) => {
     } catch (err) {
         console.error('ERROR al cargar cadenas:', err);
         res.status(500).json({ error: true, message: 'Error al cargar cadenas' });
-    }
-});
-
-/**
- * GET /eventos/api/filter-options
- * Obtiene las opciones únicas de departamentos y cadenas para los filtros
- */
-router.get('/api/filter-options', async (req, res) => {
-    try {
-        const options = await EventosModel.getFilterOptions();
-        res.json(options);
-    } catch (err) {
-        console.error('ERROR al cargar opciones de filtros:', err);
-        res.status(500).json({ error: true, message: 'Error al cargar opciones' });
     }
 });
 

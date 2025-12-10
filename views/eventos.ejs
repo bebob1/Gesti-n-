@@ -188,6 +188,24 @@
         .btn-edit { background: #2196F3; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .btn-edit:hover { background: #1976D2; }
         
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
         .no-results { text-align: center; padding: 40px; color: #999; }
         
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
@@ -254,16 +272,11 @@
             </div>
             
             <div class="filter-group">
-                <label for="filterDepartamento">Departamento</label>
-                <select id="filterDepartamento" class="filter-select">
-                    <option value="">Todos los departamentos</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="filterCadena">Cadena</label>
-                <select id="filterCadena" class="filter-select">
-                    <option value="">Todas las cadenas</option>
+                <label for="filterEstado">Filtrar por Estado</label>
+                <select id="filterEstado" class="filter-select">
+                    <option value="">Todos los estados</option>
+                    <option value="1">Activo</option>
+                    <option value="0">Inactivo</option>
                 </select>
             </div>
         </div>
@@ -288,6 +301,7 @@
                     <th>Municipio</th>
                     <th>Fecha Inicio</th>
                     <th>Cadena</th>
+                    <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -354,9 +368,6 @@ let searchTimeout;
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
-    // Cargar opciones de filtros
-    loadFilterOptions();
-    
     // Cargar eventos iniciales
     loadEventos();
     
@@ -387,43 +398,11 @@ document.addEventListener('DOMContentLoaded', function() {
         loadEventos();
     });
     
-    document.getElementById('filterDepartamento').addEventListener('change', () => {
-        currentPage = 1;
-        loadEventos();
-    });
-    
-    document.getElementById('filterCadena').addEventListener('change', () => {
+    document.getElementById('filterEstado').addEventListener('change', () => {
         currentPage = 1;
         loadEventos();
     });
 });
-
-async function loadFilterOptions() {
-    try {
-        const res = await fetch('/eventos/api/filter-options');
-        const options = await res.json();
-        
-        // Poblar departamentos
-        const deptoSelect = document.getElementById('filterDepartamento');
-        options.departamentos.forEach(depto => {
-            const option = document.createElement('option');
-            option.value = depto;
-            option.textContent = depto;
-            deptoSelect.appendChild(option);
-        });
-        
-        // Poblar cadenas
-        const cadenaSelect = document.getElementById('filterCadena');
-        options.cadenas.forEach(cadena => {
-            const option = document.createElement('option');
-            option.value = cadena;
-            option.textContent = cadena;
-            cadenaSelect.appendChild(option);
-        });
-    } catch (err) {
-        console.error('Error cargando opciones de filtros:', err);
-    }
-}
 
 async function loadEventos() {
     if (isLoading) return;
@@ -440,8 +419,7 @@ async function loadEventos() {
             filterID: document.getElementById('filterID').value,
             filterFechaDesde: document.getElementById('filterFechaDesde').value,
             filterFechaHasta: document.getElementById('filterFechaHasta').value,
-            filterDepartamento: document.getElementById('filterDepartamento').value,
-            filterCadena: document.getElementById('filterCadena').value
+            filterEstado: document.getElementById('filterEstado').value
         });
         
         const res = await fetch(`/eventos/api/eventos?${params}`);
@@ -479,6 +457,9 @@ function renderEventos(eventos) {
     document.getElementById('noResults').style.display = 'none';
     
     eventos.forEach(evento => {
+        const estadoTexto = evento.event_estado === 1 ? 'Activo' : 'Inactivo';
+        const estadoClass = evento.event_estado === 1 ? 'status-active' : 'status-inactive';
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${evento.event_id}</td>
@@ -487,6 +468,7 @@ function renderEventos(eventos) {
             <td>${evento.event_munic_desc}</td>
             <td>${new Date(evento.event_fec_inicio).toLocaleDateString()}</td>
             <td>${evento.esca_esp_desc || 'N/A'}</td>
+            <td><span class="status-badge ${estadoClass}">${estadoTexto}</span></td>
             <td>
                 <button class="btn-edit" 
                         data-event-id="${evento.event_id}"
@@ -602,8 +584,7 @@ function clearFilters() {
     document.getElementById('filterID').value = '';
     document.getElementById('filterFechaDesde').value = '';
     document.getElementById('filterFechaHasta').value = '';
-    document.getElementById('filterDepartamento').value = '';
-    document.getElementById('filterCadena').value = '';
+    document.getElementById('filterEstado').value = '';
     currentPage = 1;
     loadEventos();
 }

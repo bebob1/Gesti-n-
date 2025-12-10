@@ -1,867 +1,238 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Eventos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0a0e27;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(255, 107, 107, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(78, 205, 196, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(255, 195, 113, 0.1) 0%, transparent 50%);
-            pointer-events: none;
-            animation: shift 20s ease-in-out infinite;
-        }
-        
-        @keyframes shift {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        .header {
-            padding: 2rem 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            z-index: 10;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .header-title {
-            color: #fff;
-            font-size: 1.5rem;
-            font-weight: 300;
-            letter-spacing: 0.1em;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .btn-back, .btn-logout {
-            background: transparent;
-            color: #4ecdc4;
-            border: 1px solid #4ecdc4;
-            padding: 0.7rem 1.8rem;
-            border-radius: 0;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            display: inline-block;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-back::before, .btn-logout::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: #4ecdc4;
-            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: -1;
-        }
-        
-        .btn-back:hover::before, .btn-logout:hover::before {
-            left: 0;
-        }
-        
-        .btn-back:hover, .btn-logout:hover {
-            color: #0a0e27;
-            box-shadow: 0 0 20px rgba(78, 205, 196, 0.4);
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 20px auto;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 40px;
-            position: relative;
-            z-index: 1;
-            backdrop-filter: blur(10px);
-        }
-        
-        .filters-container {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 30px;
-            margin-bottom: 30px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .search-bar {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .search-input-wrapper {
-            flex: 1;
-            min-width: 250px;
-        }
-        
-        .search-input, .filter-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
-        }
-        
-        .search-input:focus, .filter-input:focus {
-            outline: none;
-            border-color: #4ecdc4;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        .search-input::placeholder, .filter-input::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-        }
-        
-        .btn-clear {
-            background: transparent;
-            color: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 12px 24px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            transition: all 0.3s;
-            white-space: nowrap;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .btn-clear:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-        
-        .filters-row {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        .filter-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.6);
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-        
-        .filter-select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
-        }
-        
-        .filter-select:focus {
-            outline: none;
-            border-color: #4ecdc4;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        .filter-select option {
-            background: #0a0e27;
-            color: #fff;
-        }
-        
-        .results-info {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 14px;
-            margin-bottom: 20px;
-            font-weight: 300;
-            letter-spacing: 0.05em;
-        }
-        
-        .results-info strong {
-            color: #4ecdc4;
-            font-weight: 600;
-        }
-        
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin: 25px 0;
-            flex-wrap: wrap;
-        }
-        
-        .pagination-info {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 14px;
-            margin: 0 10px;
-            font-weight: 300;
-        }
-        
-        .pagination-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .page-btn {
-            padding: 10px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.02);
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-            min-width: 45px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-        }
-        
-        .page-btn:hover:not(:disabled) {
-            background: rgba(78, 205, 196, 0.2);
-            color: #4ecdc4;
-            border-color: #4ecdc4;
-        }
-        
-        .page-btn.active {
-            background: #4ecdc4;
-            color: #0a0e27;
-            border-color: #4ecdc4;
-            font-weight: 600;
-        }
-        
-        .page-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-        
-        .page-limit {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.5);
-            font-weight: 300;
-        }
-        
-        .page-limit select {
-            padding: 8px 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .page-limit select:focus {
-            outline: none;
-            border-color: #4ecdc4;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 16px;
-            font-weight: 300;
-            letter-spacing: 0.1em;
-        }
-        
-        .loading::after {
-            content: '...';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-        
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
-        
-        .table-wrapper {
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        
-        th {
-            background: rgba(78, 205, 196, 0.15);
-            color: #4ecdc4;
-            padding: 16px 12px;
-            text-align: left;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            font-size: 12px;
-            border-bottom: 2px solid #4ecdc4;
-        }
-        
-        td {
-            padding: 16px 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.8);
-            font-weight: 300;
-        }
-        
-        tr:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
-        
-        .btn-edit {
-            background: transparent;
-            color: #4ecdc4;
-            border: 1px solid #4ecdc4;
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .btn-edit::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: #4ecdc4;
-            transition: left 0.3s;
-            z-index: -1;
-        }
-        
-        .btn-edit:hover::before {
-            left: 0;
-        }
-        
-        .btn-edit:hover {
-            color: #0a0e27;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 0;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-        
-        .status-active {
-            background: rgba(78, 205, 196, 0.2);
-            color: #4ecdc4;
-            border: 1px solid #4ecdc4;
-        }
-        
-        .status-inactive {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-            border: 1px solid #ff6b6b;
-        }
-        
-        .no-results {
-            text-align: center;
-            padding: 60px;
-            color: rgba(255, 255, 255, 0.3);
-            font-weight: 300;
-            font-size: 16px;
-            letter-spacing: 0.05em;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-        }
-        
-        .modal-content {
-            background: rgba(10, 14, 39, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin: 5% auto;
-            padding: 40px;
-            width: 90%;
-            max-width: 500px;
-            backdrop-filter: blur(20px);
-            position: relative;
-        }
-        
-        .close {
-            color: rgba(255, 255, 255, 0.5);
-            float: right;
-            font-size: 32px;
-            cursor: pointer;
-            line-height: 1;
-            transition: color 0.3s;
-        }
-        
-        .close:hover {
-            color: #ff6b6b;
-        }
-        
-        .modal-content h2 {
-            color: #fff;
-            margin-bottom: 30px;
-            font-family: 'Playfair Display', serif;
-            font-weight: 700;
-            font-size: 1.8rem;
-            letter-spacing: -0.01em;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 13px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-        
-        select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
-        }
-        
-        select:focus {
-            outline: none;
-            border-color: #4ecdc4;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        select option {
-            background: #0a0e27;
-            color: #fff;
-        }
-        
-        .btn-save {
-            background: transparent;
-            color: #4ecdc4;
-            border: 1px solid #4ecdc4;
-            padding: 14px 28px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            width: 100%;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .btn-save::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: #4ecdc4;
-            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: -1;
-        }
-        
-        .btn-save:hover::before {
-            left: 0;
-        }
-        
-        .btn-save:hover {
-            color: #0a0e27;
-            box-shadow: 0 0 20px rgba(78, 205, 196, 0.4);
-        }
-        
-        .alert {
-            padding: 15px 20px;
-            margin-bottom: 25px;
-            display: none;
-            font-weight: 500;
-            letter-spacing: 0.03em;
-            border-left: 3px solid;
-        }
-        
-        .alert-success {
-            background: rgba(78, 205, 196, 0.15);
-            color: #4ecdc4;
-            border-color: #4ecdc4;
-        }
-        
-        .alert-error {
-            background: rgba(255, 107, 107, 0.15);
-            color: #ff6b6b;
-            border-color: #ff6b6b;
-        }
-        
-        .field-type-toggle {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .type-btn {
-            padding: 10px 18px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.02);
-            color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            transition: all 0.3s;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .type-btn.active {
-            background: #4ecdc4;
-            color: #0a0e27;
-            border-color: #4ecdc4;
-        }
-        
-        .type-btn:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        @media (max-width: 768px) {
-            .header {
-                padding: 1.5rem;
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .header-left {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-            
-            .header-title {
-                font-size: 1.2rem;
-            }
-            
-            .container {
-                padding: 20px;
-                margin: 10px;
-            }
-            
-            .filters-container {
-                padding: 20px;
-            }
-            
-            .pagination-container {
-                flex-direction: column;
-            }
-            
-            .table-wrapper {
-                overflow-x: scroll;
-            }
-            
-            table {
-                min-width: 800px;
-            }
-        }
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin-styles.css">
     </style>
 </head>
+
 <body>
 
-<div class="header">
-    <div class="header-left">
-        <a href="/" class="btn-back">← Volver al Menú</a>
-        <div class="header-title">📅 Administrador de Eventos</div>
-    </div>
-    <a href="/logout" class="btn-logout">🚪 Cerrar Sesión</a>
-</div>
-
-<div class="container">
-    <div id="alert" class="alert"></div>
-
-    <div class="filters-container">
-        <div class="search-bar">
-            <div class="search-input-wrapper">
-                <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por nombre del evento...">
-            </div>
-            <button class="btn-clear" onclick="clearFilters()">🔄 Limpiar Filtros</button>
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="btn-back">← Volver al Menú</a>
+            <div class="header-title">📅 Administrador de Eventos</div>
         </div>
-        
-        <div class="filters-row">
-            <div class="filter-group">
-                <label for="filterID">ID del Evento</label>
-                <input type="text" id="filterID" class="filter-input" placeholder="Buscar por ID...">
-            </div>
-            
-            <div class="filter-group">
-                <label for="filterFechaDesde">Fecha Desde</label>
-                <input type="date" id="filterFechaDesde" class="filter-input">
-            </div>
-            
-            <div class="filter-group">
-                <label for="filterFechaHasta">Fecha Hasta</label>
-                <input type="date" id="filterFechaHasta" class="filter-input">
-            </div>
-            
-            <div class="filter-group">
-                <label for="filterEstado">Filtrar por Estado</label>
-                <select id="filterEstado" class="filter-select">
-                    <option value="">Todos los estados</option>
-                    <option value="1">Activo</option>
-                    <option value="0">Inactivo</option>
-                </select>
-            </div>
-        </div>
+        <a href="/logout" class="btn-logout">🚪 Cerrar Sesión</a>
     </div>
 
-    <div class="results-info">
-        Mostrando <strong id="resultCount">0</strong> de <strong id="totalCount">0</strong> eventos
-    </div>
+    <div class="container">
+        <div id="alert" class="alert"></div>
 
-    <div class="pagination-container" id="paginationTop"></div>
-
-    <div class="table-wrapper">
-        <div id="loadingIndicator" class="loading">Cargando eventos</div>
-        
-        <table id="eventosTable" style="display: none;">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Departamento</th>
-                    <th>Municipio</th>
-                    <th>Fecha Inicio</th>
-                    <th>Cadena</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="eventosTableBody">
-            </tbody>
-        </table>
-        
-        <div id="noResults" class="no-results" style="display: none;">
-            No se encontraron eventos que coincidan con tu búsqueda
-        </div>
-    </div>
-
-    <div class="pagination-container" id="paginationBottom"></div>
-</div>
-
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Editar Evento</h2>
-
-        <form id="editForm">
-            <input type="hidden" id="eventId">
-            <input type="hidden" id="currentDeptoId">
-            <input type="hidden" id="currentEspcadId">
-
-            <div class="form-group">
-                <label>Departamento:</label>
-                <div class="field-type-toggle">
-                    <button type="button" class="type-btn active" onclick="setDepartamentoType('departamento')">Departamento</button>
+        <div class="filters-container">
+            <div class="search-bar">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" class="search-input"
+                        placeholder="🔍 Buscar por nombre del evento...">
                 </div>
-                <select id="departamento" style="display: block;">
-                    <option value="">Seleccione un departamento...</option>
-                </select>
+                <button class="btn-clear" onclick="clearFilters()">🔄 Limpiar Filtros</button>
             </div>
 
-            <div class="form-group">
-                <label>Cadena:</label>
-                <div class="field-type-toggle">
-                    <button type="button" class="type-btn active" onclick="setCadenaType('cadena')">Cadena</button>
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label for="filterID">ID del Evento</label>
+                    <input type="text" id="filterID" class="filter-input" placeholder="Buscar por ID...">
                 </div>
-                <select id="cadena" style="display: block;">
-                    <option value="">Seleccione una cadena...</option>
-                </select>
+
+                <div class="filter-group">
+                    <label for="filterFechaDesde">Fecha Desde</label>
+                    <input type="date" id="filterFechaDesde" class="filter-input">
+                </div>
+
+                <div class="filter-group">
+                    <label for="filterFechaHasta">Fecha Hasta</label>
+                    <input type="date" id="filterFechaHasta" class="filter-input">
+                </div>
+
+                <div class="filter-group">
+                    <label for="filterEstado">Filtrar por Estado</label>
+                    <select id="filterEstado" class="filter-select">
+                        <option value="">Todos los estados</option>
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+                    </select>
+                </div>
             </div>
+        </div>
 
-            <button type="submit" class="btn-save">💾 Guardar Cambios</button>
-        </form>
+        <div class="results-info">
+            Mostrando <strong id="resultCount">0</strong> de <strong id="totalCount">0</strong> eventos
+        </div>
+
+        <div class="pagination-container" id="paginationTop"></div>
+
+        <div class="table-wrapper">
+            <div id="loadingIndicator" class="loading">Cargando eventos</div>
+
+            <table id="eventosTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Departamento</th>
+                        <th>Municipio</th>
+                        <th>Fecha Inicio</th>
+                        <th>Cadena</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="eventosTableBody">
+                </tbody>
+            </table>
+
+            <div id="noResults" class="no-results" style="display: none;">
+                No se encontraron eventos que coincidan con tu búsqueda
+            </div>
+        </div>
+
+        <div class="pagination-container" id="paginationBottom"></div>
     </div>
-</div>
 
-<script>
-let currentPage = 1;
-let currentLimit = 20;
-let totalPages = 1;
-let totalCount = 0;
-let isLoading = false;
-let currentDepartamentoType = 'departamento';
-let currentCadenaType = 'cadena';
-let searchTimeout;
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Editar Evento</h2>
 
-document.addEventListener('DOMContentLoaded', function() {
-    loadEventos();
-    
-    document.getElementById('searchInput').addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            currentPage = 1;
+            <form id="editForm">
+                <input type="hidden" id="eventId">
+                <input type="hidden" id="currentDeptoId">
+                <input type="hidden" id="currentEspcadId">
+
+                <div class="form-group">
+                    <label>Departamento:</label>
+                    <div class="field-type-toggle">
+                        <button type="button" class="type-btn active"
+                            onclick="setDepartamentoType('departamento')">Departamento</button>
+                    </div>
+                    <select id="departamento" style="display: block;">
+                        <option value="">Seleccione un departamento...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Cadena:</label>
+                    <div class="field-type-toggle">
+                        <button type="button" class="type-btn active" onclick="setCadenaType('cadena')">Cadena</button>
+                    </div>
+                    <select id="cadena" style="display: block;">
+                        <option value="">Seleccione una cadena...</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-save">💾 Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let currentLimit = 20;
+        let totalPages = 1;
+        let totalCount = 0;
+        let isLoading = false;
+        let currentDepartamentoType = 'departamento';
+        let currentCadenaType = 'cadena';
+        let searchTimeout;
+
+        document.addEventListener('DOMContentLoaded', function () {
             loadEventos();
-        }, 500);
-    });
-    
-    document.getElementById('filterID').addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            currentPage = 1;
-            loadEventos();
-        }, 500);
-    });
-    
-    document.getElementById('filterFechaDesde').addEventListener('change', () => {
-        currentPage = 1;
-        loadEventos();
-    });
-    
-    document.getElementById('filterFechaHasta').addEventListener('change', () => {
-        currentPage = 1;
-        loadEventos();
-    });
-    
-    document.getElementById('filterEstado').addEventListener('change', () => {
-        currentPage = 1;
-        loadEventos();
-    });
-});
 
-async function loadEventos() {
-    if (isLoading) return;
-    
-    isLoading = true;
-    showLoading();
-    
-    try {
-        const params = new URLSearchParams({
-            page: currentPage,
-            limit: currentLimit,
-            searchText: document.getElementById('searchInput').value,
-            filterID: document.getElementById('filterID').value,
-            filterFechaDesde: document.getElementById('filterFechaDesde').value,
-            filterFechaHasta: document.getElementById('filterFechaHasta').value,
-            filterEstado: document.getElementById('filterEstado').value
+            document.getElementById('searchInput').addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentPage = 1;
+                    loadEventos();
+                }, 500);
+            });
+
+            document.getElementById('filterID').addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentPage = 1;
+                    loadEventos();
+                }, 500);
+            });
+
+            document.getElementById('filterFechaDesde').addEventListener('change', () => {
+                currentPage = 1;
+                loadEventos();
+            });
+
+            document.getElementById('filterFechaHasta').addEventListener('change', () => {
+                currentPage = 1;
+                loadEventos();
+            });
+
+            document.getElementById('filterEstado').addEventListener('change', () => {
+                currentPage = 1;
+                loadEventos();
+            });
         });
-        
-        const res = await fetch(`/eventos/api/eventos?${params}`);
-        const data = await res.json();
-        
-        if (data.success) {
-            totalPages = data.totalPages;
-            totalCount = data.totalCount;
-            renderEventos(data.eventos);
-            renderPagination();
-            updateResultsInfo(data.eventos.length, totalCount);
-        } else {
-            showAlert('Error al cargar eventos', 'error');
-        }
-    } catch (err) {
-        console.error('Error:', err);
-        showAlert('Error al cargar eventos', 'error');
-    } finally {
-        isLoading = false;
-        hideLoading();
-    }
-}
 
-function renderEventos(eventos) {
-    const tbody = document.getElementById('eventosTableBody');
-    tbody.innerHTML = '';
-    
-    if (eventos.length === 0) {
-        document.getElementById('eventosTable').style.display = 'none';
-        document.getElementById('noResults').style.display = 'block';
-        return;
-    }
-    
-    document.getElementById('eventosTable').style.display = 'table';
-    document.getElementById('noResults').style.display = 'none';
-    
-    eventos.forEach(evento => {
-        const estadoTexto = evento.event_estado === 1 ? 'Activo' : 'Inactivo';
-        const estadoClass = evento.event_estado === 1 ? 'status-active' : 'status-inactive';
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+        async function loadEventos() {
+            if (isLoading) return;
+
+            isLoading = true;
+            showLoading();
+
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: currentLimit,
+                    searchText: document.getElementById('searchInput').value,
+                    filterID: document.getElementById('filterID').value,
+                    filterFechaDesde: document.getElementById('filterFechaDesde').value,
+                    filterFechaHasta: document.getElementById('filterFechaHasta').value,
+                    filterEstado: document.getElementById('filterEstado').value
+                });
+
+                const res = await fetch(`/eventos/api/eventos?${params}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    totalPages = data.totalPages;
+                    totalCount = data.totalCount;
+                    renderEventos(data.eventos);
+                    renderPagination();
+                    updateResultsInfo(data.eventos.length, totalCount);
+                } else {
+                    showAlert('Error al cargar eventos', 'error');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                showAlert('Error al cargar eventos', 'error');
+            } finally {
+                isLoading = false;
+                hideLoading();
+            }
+        }
+
+        function renderEventos(eventos) {
+            const tbody = document.getElementById('eventosTableBody');
+            tbody.innerHTML = '';
+
+            if (eventos.length === 0) {
+                document.getElementById('eventosTable').style.display = 'none';
+                document.getElementById('noResults').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('eventosTable').style.display = 'table';
+            document.getElementById('noResults').style.display = 'none';
+
+            eventos.forEach(evento => {
+                const estadoTexto = evento.event_estado === 1 ? 'Activo' : 'Inactivo';
+                const estadoClass = evento.event_estado === 1 ? 'status-active' : 'status-inactive';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
             <td>${evento.event_id}</td>
             <td>${evento.event_nombre}</td>
             <td>${evento.event_depto_desc || 'N/A'}</td>
@@ -881,44 +252,44 @@ function renderEventos(eventos) {
                 </button>
             </td>
         `;
-        tbody.appendChild(tr);
-    });
-}
+                tbody.appendChild(tr);
+            });
+        }
 
-function renderPagination() {
-    const paginationHTML = createPaginationHTML();
-    document.getElementById('paginationTop').innerHTML = paginationHTML;
-    document.getElementById('paginationBottom').innerHTML = paginationHTML;
-}
+        function renderPagination() {
+            const paginationHTML = createPaginationHTML();
+            document.getElementById('paginationTop').innerHTML = paginationHTML;
+            document.getElementById('paginationBottom').innerHTML = paginationHTML;
+        }
 
-function createPaginationHTML() {
-    if (totalPages <= 1) return '';
-    
-    let html = '<div class="pagination-buttons">';
-    
-    html += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+        function createPaginationHTML() {
+            if (totalPages <= 1) return '';
+
+            let html = '<div class="pagination-buttons">';
+
+            html += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
         ← Anterior
     </button>`;
-    
-    const pagesToShow = getPagesToShow();
-    pagesToShow.forEach(page => {
-        if (page === '...') {
-            html += `<span class="page-btn" disabled>...</span>`;
-        } else {
-            html += `<button class="page-btn ${page === currentPage ? 'active' : ''}" 
+
+            const pagesToShow = getPagesToShow();
+            pagesToShow.forEach(page => {
+                if (page === '...') {
+                    html += `<span class="page-btn" disabled>...</span>`;
+                } else {
+                    html += `<button class="page-btn ${page === currentPage ? 'active' : ''}" 
                             onclick="changePage(${page})">
                 ${page}
             </button>`;
-        }
-    });
-    
-    html += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                }
+            });
+
+            html += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
         Siguiente →
     </button>`;
-    
-    html += '</div>';
-    
-    html += `<div class="page-limit">
+
+            html += '</div>';
+
+            html += `<div class="page-limit">
         <label>Mostrar:</label>
         <select onchange="changeLimit(this.value)">
             <option value="10" ${currentLimit === 10 ? 'selected' : ''}>10</option>
@@ -927,249 +298,250 @@ function createPaginationHTML() {
             <option value="100" ${currentLimit === 100 ? 'selected' : ''}>100</option>
         </select>
     </div>`;
-    
-    html += `<div class="pagination-info">Página ${currentPage} de ${totalPages}</div>`;
-    
-    return html;
-}
 
-function getPagesToShow() {
-    const pages = [];
-    const maxVisible = 7;
-    
-    if (totalPages <= maxVisible) {
-        for (let i = 1; i <= totalPages; i++) {
-            pages.push(i);
+            html += `<div class="pagination-info">Página ${currentPage} de ${totalPages}</div>`;
+
+            return html;
         }
-    } else {
-        if (currentPage <= 4) {
-            for (let i = 1; i <= 5; i++) pages.push(i);
-            pages.push('...');
-            pages.push(totalPages);
-        } else if (currentPage >= totalPages - 3) {
-            pages.push(1);
-            pages.push('...');
-            for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
-        } else {
-            pages.push(1);
-            pages.push('...');
-            for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-            pages.push('...');
-            pages.push(totalPages);
+
+        function getPagesToShow() {
+            const pages = [];
+            const maxVisible = 7;
+
+            if (totalPages <= maxVisible) {
+                for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                if (currentPage <= 4) {
+                    for (let i = 1; i <= 5; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(totalPages);
+                } else if (currentPage >= totalPages - 3) {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+                } else {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            }
+
+            return pages;
         }
-    }
-    
-    return pages;
-}
 
-function changePage(page) {
-    if (page < 1 || page > totalPages || page === currentPage) return;
-    currentPage = page;
-    loadEventos();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+        function changePage(page) {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            currentPage = page;
+            loadEventos();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
-function changeLimit(newLimit) {
-    currentLimit = parseInt(newLimit);
-    currentPage = 1;
-    loadEventos();
-}
+        function changeLimit(newLimit) {
+            currentLimit = parseInt(newLimit);
+            currentPage = 1;
+            loadEventos();
+        }
 
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('filterID').value = '';
-    document.getElementById('filterFechaDesde').value = '';
-    document.getElementById('filterFechaHasta').value = '';
-    document.getElementById('filterEstado').value = '';
-    currentPage = 1;
-    loadEventos();
-}
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterID').value = '';
+            document.getElementById('filterFechaDesde').value = '';
+            document.getElementById('filterFechaHasta').value = '';
+            document.getElementById('filterEstado').value = '';
+            currentPage = 1;
+            loadEventos();
+        }
 
-function updateResultsInfo(showing, total) {
-    document.getElementById('resultCount').textContent = showing;
-    document.getElementById('totalCount').textContent = total;
-}
+        function updateResultsInfo(showing, total) {
+            document.getElementById('resultCount').textContent = showing;
+            document.getElementById('totalCount').textContent = total;
+        }
 
-function showLoading() {
-    document.getElementById('loadingIndicator').style.display = 'block';
-    document.getElementById('eventosTable').style.display = 'none';
-    document.getElementById('noResults').style.display = 'none';
-}
+        function showLoading() {
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('eventosTable').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+        }
 
-function hideLoading() {
-    document.getElementById('loadingIndicator').style.display = 'none';
-}
+        function hideLoading() {
+            document.getElementById('loadingIndicator').style.display = 'none';
+        }
 
-function showAlert(message, type) {
-    const alert = document.getElementById('alert');
-    alert.textContent = message;
-    alert.className = 'alert alert-' + type;
-    alert.style.display = 'block';
-    setTimeout(() => {
-        alert.style.display = 'none';
-    }, 4000);
-}
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = 'alert alert-' + type;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 4000);
+        }
 
-function setDepartamentoType(type) {
-    currentDepartamentoType = type;
-    const deptoSelect = document.getElementById('departamento');
-    const formGroup = deptoSelect.closest('.form-group');
-    const buttons = formGroup.querySelectorAll('.type-btn');
-    
-    buttons.forEach(btn => btn.classList.remove('active'));
-    
-    if (type === 'departamento') {
-        deptoSelect.style.display = 'block';
-        if (buttons[0]) buttons[0].classList.add('active');
-    }
-}
+        function setDepartamentoType(type) {
+            currentDepartamentoType = type;
+            const deptoSelect = document.getElementById('departamento');
+            const formGroup = deptoSelect.closest('.form-group');
+            const buttons = formGroup.querySelectorAll('.type-btn');
 
-function setCadenaType(type) {
-    currentCadenaType = type;
-    const cadenaSelect = document.getElementById('cadena');
-    const formGroup = cadenaSelect.closest('.form-group');
-    const buttons = formGroup.querySelectorAll('.type-btn');
-    
-    buttons.forEach(btn => btn.classList.remove('active'));
-    
-    if (type === 'cadena') {
-        cadenaSelect.style.display = 'block';
-        if (buttons[0]) buttons[0].classList.add('active');
-    }
-}
+            buttons.forEach(btn => btn.classList.remove('active'));
 
-async function loadDepartamentos() {
-    const select = document.getElementById("departamento");
-    select.innerHTML = `<option value="">Cargando departamentos...</option>`;
-
-    try {
-        const res = await fetch("/eventos/api/departamentos");
-        if (!res.ok) throw new Error('Error al cargar departamentos');
-        
-        const departamentos = await res.json();
-        
-        select.innerHTML = `<option value="">Seleccione un departamento...</option>`;
-        departamentos.forEach(dep => {
-            const option = document.createElement("option");
-            option.value = dep.dep_id.toString();
-            option.textContent = dep.dep_desc;
-            select.appendChild(option);
-        });
-    } catch (err) {
-        console.error('Error cargando departamentos:', err);
-        select.innerHTML = `<option value="">Error al cargar departamentos</option>`;
-        showAlert("Error al cargar departamentos", "error");
-    }
-}
-
-async function loadCadenas() {
-    const select = document.getElementById("cadena");
-    select.innerHTML = `<option value="">Cargando cadenas...</option>`;
-
-    try {
-        const res = await fetch("/eventos/api/cadenas");
-        if (!res.ok) throw new Error('Error al cargar cadenas');
-        
-        const cadenas = await res.json();
-        
-        select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
-        cadenas.forEach(cad => {
-            const option = document.createElement("option");
-            option.value = cad.espcad_id.toString();
-            option.textContent = cad.espcad_cad_desc;
-            select.appendChild(option);
-        });
-    } catch (err) {
-        console.error('Error cargando cadenas:', err);
-        select.innerHTML = `<option value="">Error al cargar cadenas</option>`;
-        showAlert("Error al cargar cadenas", "error");
-    }
-}
-
-async function openModalFromButton(button) {
-    const eventId = button.dataset.eventId;
-    const depIdActual = button.dataset.depId;
-    const depDescActual = button.dataset.depDesc;
-    const espcadIdActual = button.dataset.espcadId;
-    const cadenaDescActual = button.dataset.cadenaDesc;
-    
-    document.getElementById("eventId").value = eventId;
-    document.getElementById("currentDeptoId").value = depIdActual || '';
-    document.getElementById("currentEspcadId").value = espcadIdActual || '';
-    document.getElementById("editModal").style.display = "block";
-    
-    try {
-        await loadDepartamentos();
-        await loadCadenas();
-        
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        if (depIdActual && depIdActual !== '' && depIdActual !== 'null') {
-            setDepartamentoType('departamento');
-            const deptoSelect = document.getElementById("departamento");
-            if (deptoSelect) {
-                deptoSelect.value = depIdActual.toString();
+            if (type === 'departamento') {
+                deptoSelect.style.display = 'block';
+                if (buttons[0]) buttons[0].classList.add('active');
             }
         }
-        
-        if (espcadIdActual && espcadIdActual !== '' && espcadIdActual !== 'null') {
-            setCadenaType('cadena');
-            const cadenaSelect = document.getElementById("cadena");
-            if (cadenaSelect) {
-                cadenaSelect.value = espcadIdActual.toString();
+
+        function setCadenaType(type) {
+            currentCadenaType = type;
+            const cadenaSelect = document.getElementById('cadena');
+            const formGroup = cadenaSelect.closest('.form-group');
+            const buttons = formGroup.querySelectorAll('.type-btn');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (type === 'cadena') {
+                cadenaSelect.style.display = 'block';
+                if (buttons[0]) buttons[0].classList.add('active');
             }
         }
-    } catch (error) {
-        console.error('Error al cargar datos del modal:', error);
-        showAlert("Error al cargar los datos. Verifique la conexión.", "error");
-    }
-}
 
-function closeModal() {
-    document.getElementById("editModal").style.display = "none";
-}
+        async function loadDepartamentos() {
+            const select = document.getElementById("departamento");
+            select.innerHTML = `<option value="">Cargando departamentos...</option>`;
 
-window.onclick = function (e) {
-    if (e.target === document.getElementById("editModal")) closeModal();
-};
+            try {
+                const res = await fetch("/eventos/api/departamentos");
+                if (!res.ok) throw new Error('Error al cargar departamentos');
 
-document.getElementById("editForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
+                const departamentos = await res.json();
 
-    const eventId = document.getElementById("eventId").value;
-    const currentDeptoId = document.getElementById("currentDeptoId").value;
-    const currentEspcadId = document.getElementById("currentEspcadId").value;
-    const deptoId = document.getElementById("departamento").value;
-    const espcadId = document.getElementById("cadena").value;
-
-    const finalDeptoId = deptoId || currentDeptoId || null;
-    const finalEspcadId = espcadId || currentEspcadId || null;
-
-    try {
-        const res = await fetch(`/eventos/api/${eventId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                event_depto_id: finalDeptoId,
-                espcad_id: finalEspcadId
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            showAlert("Evento actualizado exitosamente", "success");
-            closeModal();
-            setTimeout(() => loadEventos(), 800);
-        } else {
-            showAlert(data.message || "Error al actualizar evento", "error");
+                select.innerHTML = `<option value="">Seleccione un departamento...</option>`;
+                departamentos.forEach(dep => {
+                    const option = document.createElement("option");
+                    option.value = dep.dep_id.toString();
+                    option.textContent = dep.dep_desc;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Error cargando departamentos:', err);
+                select.innerHTML = `<option value="">Error al cargar departamentos</option>`;
+                showAlert("Error al cargar departamentos", "error");
+            }
         }
-    } catch (err) {
-        console.error('Error al guardar:', err);
-        showAlert("Error al guardar cambios", "error");
-    }
-});
-</script>
+
+        async function loadCadenas() {
+            const select = document.getElementById("cadena");
+            select.innerHTML = `<option value="">Cargando cadenas...</option>`;
+
+            try {
+                const res = await fetch("/eventos/api/cadenas");
+                if (!res.ok) throw new Error('Error al cargar cadenas');
+
+                const cadenas = await res.json();
+
+                select.innerHTML = `<option value="">Seleccione una cadena...</option>`;
+                cadenas.forEach(cad => {
+                    const option = document.createElement("option");
+                    option.value = cad.espcad_id.toString();
+                    option.textContent = cad.espcad_cad_desc;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Error cargando cadenas:', err);
+                select.innerHTML = `<option value="">Error al cargar cadenas</option>`;
+                showAlert("Error al cargar cadenas", "error");
+            }
+        }
+
+        async function openModalFromButton(button) {
+            const eventId = button.dataset.eventId;
+            const depIdActual = button.dataset.depId;
+            const depDescActual = button.dataset.depDesc;
+            const espcadIdActual = button.dataset.espcadId;
+            const cadenaDescActual = button.dataset.cadenaDesc;
+
+            document.getElementById("eventId").value = eventId;
+            document.getElementById("currentDeptoId").value = depIdActual || '';
+            document.getElementById("currentEspcadId").value = espcadIdActual || '';
+            document.getElementById("editModal").style.display = "block";
+
+            try {
+                await loadDepartamentos();
+                await loadCadenas();
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                if (depIdActual && depIdActual !== '' && depIdActual !== 'null') {
+                    setDepartamentoType('departamento');
+                    const deptoSelect = document.getElementById("departamento");
+                    if (deptoSelect) {
+                        deptoSelect.value = depIdActual.toString();
+                    }
+                }
+
+                if (espcadIdActual && espcadIdActual !== '' && espcadIdActual !== 'null') {
+                    setCadenaType('cadena');
+                    const cadenaSelect = document.getElementById("cadena");
+                    if (cadenaSelect) {
+                        cadenaSelect.value = espcadIdActual.toString();
+                    }
+                }
+            } catch (error) {
+                console.error('Error al cargar datos del modal:', error);
+                showAlert("Error al cargar los datos. Verifique la conexión.", "error");
+            }
+        }
+
+        function closeModal() {
+            document.getElementById("editModal").style.display = "none";
+        }
+
+        window.onclick = function (e) {
+            if (e.target === document.getElementById("editModal")) closeModal();
+        };
+
+        document.getElementById("editForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const eventId = document.getElementById("eventId").value;
+            const currentDeptoId = document.getElementById("currentDeptoId").value;
+            const currentEspcadId = document.getElementById("currentEspcadId").value;
+            const deptoId = document.getElementById("departamento").value;
+            const espcadId = document.getElementById("cadena").value;
+
+            const finalDeptoId = deptoId || currentDeptoId || null;
+            const finalEspcadId = espcadId || currentEspcadId || null;
+
+            try {
+                const res = await fetch(`/eventos/api/${eventId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        event_depto_id: finalDeptoId,
+                        espcad_id: finalEspcadId
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showAlert("Evento actualizado exitosamente", "success");
+                    closeModal();
+                    setTimeout(() => loadEventos(), 800);
+                } else {
+                    showAlert(data.message || "Error al actualizar evento", "error");
+                }
+            } catch (err) {
+                console.error('Error al guardar:', err);
+                showAlert("Error al guardar cambios", "error");
+            }
+        });
+    </script>
 
 </body>
+
 </html>

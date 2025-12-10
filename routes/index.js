@@ -15,7 +15,6 @@ router.get('/', basicAuth, (req, res) => {
  * Cierra la sesión del usuario
  */
 router.get('/logout', (req, res) => {
-    res.setHeader('WWW-Authenticate', 'Basic realm="Admin Eventos"');
     res.status(401).send(`
         <!DOCTYPE html>
         <html lang="es">

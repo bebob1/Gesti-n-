@@ -65,6 +65,83 @@ http://localhost:8200
 - **Queries Parametrizadas** - Prevención de SQL Injection
 - **CORS** - Control de recursos de origen cruzado
 
+## 🎨 Estilos y Diseño
+
+### CSS Centralizado
+
+Todos los estilos de la aplicación están centralizados en un único archivo:
+
+📂 **Ubicación:** `/public/css/admin-styles.css`
+
+**Paleta de Colores:**
+- **Fondo principal:** `#ffffff` (blanco)
+- **Texto principal:** `#2c3e50` (gris oscuro)
+- **Acento primario:** `#4ecdc4` (turquesa)
+- **Éxito:** `#27ae60` (verde)
+- **Error:** `#e74c3c` (rojo)
+- **Bordes:** `#e8ecef` (gris claro)
+
+**Estructura del CSS:**
+```
+admin-styles.css
+├── Reset y configuración base
+├── Header y navegación
+├── Contenedores principales
+├── Filtros y búsqueda
+├── Tablas y paginación
+├── Botones y formularios
+├── Modales y alertas
+└── Responsive (media queries)
+```
+
+### Cómo Modificar Estilos
+
+Para cambiar estilos en toda la aplicación:
+
+1. Edita el archivo `/public/css/admin-styles.css`
+2. Los cambios se aplicarán a todas las vistas automáticamente
+3. Refresca el navegador para ver los cambios
+
+**Ejemplo:** Cambiar el color de acento principal
+```css
+/* Busca y reemplaza #4ecdc4 por tu color preferido */
+.btn-back, .btn-logout {
+    color: #4ecdc4; /* ← Cambiar aquí */
+    border: 2px solid #4ecdc4; /* ← Y aquí */
+}
+```
+
+## ⚙️ Configuraciones Especiales
+
+### Filtro de Eventos Activos por Defecto
+
+La página de eventos está configurada para mostrar **solo eventos activos** por defecto.
+
+📂 **Archivo:** `views/eventos.ejs`
+
+**Comportamiento:**
+- Al cargar la página: muestra solo eventos activos
+- Al limpiar filtros: vuelve a mostrar solo eventos activos
+- El usuario puede cambiar manualmente a "Todos" o "Inactivos" si lo necesita
+
+**Código relevante:**
+```html
+<!-- Select con "Activo" preseleccionado -->
+<select id="filterEstado" class="filter-select">
+    <option value="">Todos los estados</option>
+    <option value="1" selected>Activo</option>
+    <option value="0">Inactivo</option>
+</select>
+```
+
+```javascript
+// Función clearFilters mantiene el filtro en "Activo"
+function clearFilters() {
+    document.getElementById('filterEstado').value = '1'; // Activos por defecto
+    // ... resto del código
+}
+```
+
 ## 🔧 Configuración
 
 ### Variables de Entorno
